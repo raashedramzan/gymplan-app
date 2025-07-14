@@ -19,30 +19,32 @@
         }
         .btn-primary {
             background-color: #3b82f6; /* Electric Blue */
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            transition: all 0.3s ease-in-out;
         }
         .btn-primary:hover {
             background-color: #2563eb;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25);
         }
         .btn-secondary {
             background-color: #1f2937;
             border: 1px solid #374151;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            transition: all 0.3s ease-in-out;
         }
         .btn-secondary:hover {
             background-color: #374151;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
         .form-step {
             display: none;
-            animation: fadeIn 0.5s ease-in-out;
+            animation: slide-and-fade-in 0.5s ease-in-out;
         }
         .form-step.active {
             display: block;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+        @keyframes slide-and-fade-in {
+            from { opacity: 0; transform: translateY(25px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .feature-card, .plan-card {
@@ -71,9 +73,17 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Style for the form labels */
+        form label[for^="day-"], form label[for^="mainGoal-"], form label[for^="subGoal-"], form label[for^="equip-"] {
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Style for the checked state of form inputs */
         input[type="radio"]:checked + label, input[type="checkbox"]:checked + label {
             border-color: #3b82f6;
             background-color: #3b82f620;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
     </style>
 </head>
@@ -272,7 +282,7 @@
             trainingDaysContainer.innerHTML = trainingDaysData.map(day => `
                 <div>
                     <input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" required>
-                    <label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50 transition-all">
+                    <label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
                         ${day}
                     </label>
                 </div>
@@ -282,7 +292,7 @@
             mainGoalContainer.innerHTML = mainGoalsData.map(goal => `
                 <div>
                     <input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required>
-                    <label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50 transition-all">
+                    <label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
                         ${goal}
                     </label>
                 </div>
@@ -292,7 +302,7 @@
             equipmentContainer.innerHTML = equipmentData.map(equip => `
                 <div>
                     <input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required>
-                    <label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50 transition-all">
+                    <label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
                         ${equip}
                     </label>
                 </div>
@@ -309,7 +319,7 @@
                 subGoalOptions.innerHTML = subGoalsData.map(subGoal => `
                      <div>
                         <input type="radio" id="subGoal-${subGoal.replace(/ /g, '')}" name="subGoal" value="${subGoal}" class="hidden peer" required>
-                        <label for="subGoal-${subGoal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50 transition-all">
+                        <label for="subGoal-${subGoal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
                             ${subGoal}
                         </label>
                     </div>
