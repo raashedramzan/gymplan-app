@@ -113,6 +113,24 @@
             transform: scale(1.02);
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
+        
+        /* Modal Styles */
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal-hidden {
+            pointer-events: none;
+        }
+        .modal-hidden .modal-backdrop {
+            opacity: 0;
+        }
+        .modal-hidden .modal-content {
+            opacity: 0;
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -280,6 +298,40 @@
         <p class="text-gray-400">&copy; 2025 GymPlan. All Rights Reserved. Powered by AI.</p>
     </footer>
 
+    <!-- Exercise Detail Modal -->
+    <div id="exerciseModal" class="modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-75" onclick="closeExerciseModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="modal-content bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h3 id="modalTitle" class="text-2xl font-bold text-white">Exercise Details</h3>
+                <button onclick="closeExerciseModal()" class="text-gray-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 flex-grow overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Video Player -->
+                    <div class="aspect-w-16 aspect-h-9">
+                        <iframe id="modalVideo" class="w-full h-full rounded-lg" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <!-- Instructions -->
+                    <div>
+                        <h4 class="text-xl font-semibold text-white mb-3">Instructions</h4>
+                        <ul id="modalInstructions" class="list-decimal list-inside space-y-2 text-gray-300">
+                            <!-- Instructions will be injected here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         // --- Form Data ---
         const trainingDaysData = [1, 2, 3, 4, 5, 6, 7];
@@ -305,6 +357,10 @@
         const subGoalContainer = document.getElementById('subGoalContainer');
         const subGoalOptions = document.getElementById('subGoalOptions');
         const equipmentContainer = document.getElementById('equipmentContainer');
+        const exerciseModal = document.getElementById('exerciseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalVideo = document.getElementById('modalVideo');
+        const modalInstructions = document.getElementById('modalInstructions');
         
         // --- Form Initialization ---
         function initializeForm() {
@@ -361,21 +417,12 @@
         function smoothScroll(event) {
             event.preventDefault();
             const targetId = event.currentTarget.getAttribute("href");
-            const targetPosition = document.querySelector(targetId).offsetTop;
-            const startPosition = window.pageYOffset;
-            const distance = targetPosition - startPosition;
-            const duration = 750; // milliseconds
-            let start = null;
-
-            window.requestAnimationFrame(step);
-
-            function step(timestamp) {
-                if (!start) start = timestamp;
-                const progress = timestamp - start;
-                // Easing function
-                const ease = progress / duration < 0.5 ? 2 * (progress / duration) * (progress / duration) : -1 + (4 - 2 * (progress / duration)) * (progress / duration);
-                window.scrollTo(0, startPosition + distance * ease);
-                if (progress < duration) window.requestAnimationFrame(step);
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         }
 
@@ -479,7 +526,15 @@ Return a single JSON object with no explanation. Structure:
           "sets": 4,
           "reps": 6,
           "rest_seconds": 120,
-          "notes": "Use 75–85% of 1RM. Focus on controlled tempo."
+          "notes": "Use 75–85% of 1RM. Focus on controlled tempo.",
+          "youtube_search_query": "how to do incline dumbbell press",
+          "instructions": [
+            "Lie back on an incline bench with a dumbbell in each hand on top of your thighs.",
+            "Use your thighs to help push the dumbbells up one at a time so you can hold them at shoulder width.",
+            "Rotate your wrists forward so that the palms of your hands are facing away from you. This is your starting position.",
+            "Breathe out and push the dumbbells up with your chest. Lock your arms at the top, hold for a second, and then start to slowly lower the weight.",
+            "Breathe in and lower the dumbbells back down to the starting position."
+          ]
         }
       ],
       "cardio": {
@@ -503,23 +558,25 @@ Return a single JSON object with no explanation. Structure:
 
 ✅ PROGRAMMING RULES:
 
-1. Match number of training days to "days_per_week" input. Distribute body parts evenly.
-2. Match training style: e.g., Upper/Lower, Push/Pull/Legs, Full Body.
-3. Match goal to training logic:
+1. For each exercise, you MUST include a "youtube_search_query" and a detailed "instructions" array.
+2. The "instructions" array must contain at least 3 steps.
+3. Match number of training days to "days_per_week" input. Distribute body parts evenly.
+4. Match training style: e.g., Upper/Lower, Push/Pull/Legs, Full Body.
+5. Match goal to training logic:
    - **Fat Loss** → Full-body or high-frequency training with compound lifts, 6–10 reps, short rests (45–90 sec)
    - **Muscle Gain** → Low volume (3–4 exercises/day), high intensity (4–8 reps, 75–90% 1RM), long rests (90–180 sec)
    - **Strength** → Very low rep range (3–5 reps), multi-joint movements, full rest (2–4 mins)
-4. Begin workouts with **compound lifts**, followed by isolations.
-5. Account for **equipment** — do not suggest barbell exercises if only dumbbells are available.
-6. Avoid overhead lifts if injury notes mention shoulder issues.
-7. Include **cardio object per day**:
+6. Begin workouts with **compound lifts**, followed by isolations.
+7. Account for **equipment** — do not suggest barbell exercises if only dumbbells are available.
+8. Avoid overhead lifts if injury notes mention shoulder issues.
+9. Include **cardio object per day**:
    - If goal = "Fat Loss":
      - Add 20–40 mins of MISS or 10–20 min HIIT **after** weight training
    - If goal = "Muscle Gain":
      - Add 15–30 mins of **light walking** post-workout (optional but encouraged)
    - Include **intensity** (e.g., RPE 4–6 for MISS or zone 2)
-8. Do not repeat the same exercises within a single week.
-9. JSON must be **valid**, no trailing commas or extra content.
+10. Do not repeat the same exercises within a single week.
+11. JSON must be **valid**, no trailing commas or extra content.
 
 -------------------
 
@@ -570,7 +627,7 @@ The following will be dynamically injected:
         });
 
         async function callGeminiAPI(prompt) {
-            // The URL for our Vercel Function
+            // The relative URL is correct for the deployed Vercel site.
             const functionUrl = '/api/generate-plan';
 
             const response = await fetch(functionUrl, {
@@ -630,12 +687,12 @@ The following will be dynamically injected:
             }
 
             // Display daily plan cards
-            plan.forEach(day => {
-                const exercisesHtml = day.exercises.map(ex => `
+            plan.forEach((day, dayIndex) => {
+                const exercisesHtml = day.exercises.map((ex, exIndex) => `
                     <li class="py-3 border-b border-gray-700">
                         <div class="flex justify-between items-center">
-                            <p class="font-semibold text-white">${ex.name}</p>
-                            <p class="text-blue-400 font-semibold">${ex.sets} sets x ${ex.reps} reps</p>
+                            <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="font-semibold text-white text-left hover:text-blue-400 transition">${ex.name}</button>
+                            <p class="text-blue-400 font-semibold text-right">${ex.sets} sets x ${ex.reps} reps</p>
                         </div>
                         <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
                     </li>
@@ -663,6 +720,29 @@ The following will be dynamically injected:
             });
         }
         
+        // --- Modal Functions ---
+        function openExerciseModal(dayIndex, exIndex) {
+            if (!currentPlanData) return;
+            
+            const exercise = currentPlanData.plan[dayIndex].exercises[exIndex];
+            
+            modalTitle.textContent = exercise.name;
+            
+            // Construct YouTube embed URL
+            const videoQuery = encodeURIComponent(exercise.youtube_search_query);
+            modalVideo.src = `https://www.youtube.com/embed?listType=search&list=${videoQuery}`;
+            
+            // Populate instructions
+            modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
+            
+            exerciseModal.classList.remove('modal-hidden');
+        }
+
+        function closeExerciseModal() {
+            exerciseModal.classList.add('modal-hidden');
+            modalVideo.src = ''; // Stop the video from playing in the background
+        }
+
         // --- Utility Functions ---
         function downloadPDF() {
             if (!currentPlanData) {
