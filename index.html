@@ -113,24 +113,6 @@
             transform: scale(1.02);
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
-        
-        /* Modal Styles */
-        .modal-backdrop {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .modal-content {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        .modal-hidden {
-            pointer-events: none;
-        }
-        .modal-hidden .modal-backdrop {
-            opacity: 0;
-        }
-        .modal-hidden .modal-content {
-            opacity: 0;
-            transform: scale(0.95);
-        }
     </style>
 </head>
 <body class="antialiased">
@@ -194,7 +176,7 @@
 
                     <!-- Progress Bar -->
                     <div class="w-full bg-gray-700 rounded-full h-2.5 mb-8">
-                        <div id="progress-bar" class="bg-blue-500 h-2.5 rounded-full progress-bar-inner" style="width: 20%"></div>
+                        <div id="progress-bar" class="bg-blue-500 h-2.5 rounded-full progress-bar-inner" style="width: 25%"></div>
                     </div>
 
                     <form id="gymPlanForm">
@@ -267,21 +249,9 @@
                             </div>
                             <div class="flex justify-between">
                                 <button type="button" onclick="prevStep(3)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
-                                <button type="button" onclick="nextStep(5)" class="px-6 py-3 font-semibold text-white rounded-lg btn-primary">Next</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Step 5: Nutrition -->
-                        <div id="step-5" class="form-step">
-                             <label class="block text-lg font-medium mb-3">Dietary Preferences (optional)</label>
-                             <p class="text-sm text-gray-400 mb-4">Select a preference to receive AI-generated meal ideas with your plan.</p>
-                             <div id="dietContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6"></div>
-                             <div class="flex justify-between">
-                                <button type="button" onclick="prevStep(4)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
                                 <button type="submit" class="w-1/2 px-6 py-3 font-semibold text-white rounded-lg btn-primary">Generate Plan</button>
                             </div>
                         </div>
-
                     </form>
                 </div>
             </div>
@@ -330,12 +300,12 @@
     </footer>
 
     <!-- Exercise Detail Modal -->
-    <div id="exerciseModal" class="modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div id="exerciseModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
         <!-- Backdrop -->
-        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-75" onclick="closeExerciseModal()"></div>
+        <div class="fixed inset-0 bg-black bg-opacity-75" onclick="closeExerciseModal()"></div>
         
         <!-- Modal Content -->
-        <div class="modal-content bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform transition-all duration-300 ease-in-out">
             <div class="p-6 border-b border-gray-700 flex justify-between items-center">
                 <h3 id="modalTitle" class="text-2xl font-bold text-white">Exercise Details</h3>
                 <button onclick="closeExerciseModal()" class="text-gray-400 hover:text-white transition">
@@ -372,12 +342,11 @@
         const mainGoalsData = ['Muscle Gain', 'Fat Loss'];
         const subGoalsData = ['Science-Based', 'Intense'];
         const equipmentData = ['Commercial Gym', 'Dumbbells at Home', 'Calisthenics'];
-        const dietData = ['Standard', 'Vegetarian', 'Vegan'];
         const genderData = ['Male', 'Female'];
 
         // --- State Management ---
         let currentStep = 1;
-        const totalSteps = 5; // Updated to 5 steps
+        const totalSteps = 4; // Updated to 4 steps
         let currentPlanData = null; // To store the generated plan for PDF download
 
         // --- DOM Elements ---
@@ -394,7 +363,6 @@
         const subGoalContainer = document.getElementById('subGoalContainer');
         const subGoalOptions = document.getElementById('subGoalOptions');
         const equipmentContainer = document.getElementById('equipmentContainer');
-        const dietContainer = document.getElementById('dietContainer');
         const genderContainer = document.getElementById('genderContainer');
         const exerciseModal = document.getElementById('exerciseModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -410,8 +378,6 @@
                 <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${goal}</label></div>`).join('');
             equipmentContainer.innerHTML = equipmentData.map(equip => `
                 <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${equip}</label></div>`).join('');
-            dietContainer.innerHTML = dietData.map(diet => `
-                <div><input type="radio" id="diet-${diet.replace(/ /g,'')}" name="dietPreference" value="${diet}" class="hidden peer"><label for="diet-${diet.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${diet}</label></div>`).join('');
             genderContainer.innerHTML = genderData.map(gender => `
                 <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer" required><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${gender}</label></div>`).join('');
         }
@@ -525,7 +491,6 @@
                 equipment: formData.get('equipment'),
                 style: formData.get('trainingStyle'),
                 limitations: formData.get('limitations'),
-                diet: formData.get('dietPreference') || 'No preference'
             };
 
             planGeneratorSection.classList.add('hidden');
@@ -534,46 +499,35 @@
 
             try {
                 const prompt = `
-You are a world-class certified strength and conditioning coach and a registered dietitian. Your task is to generate a comprehensive, science-based weekly workout and nutrition plan. The entire output must be a single, valid JSON object with no explanatory text before or after it.
+You are a certified strength and conditioning coach and clinical exercise physiologist. You also hold a precision nutrition certification. Your task is to generate a **goal-driven**, **science-backed**, and **realistic weekly training and meal plan** for a user. The output must be in **valid JSON** with no explanation or extra text.
 
 -------------------
-✅ JSON OUTPUT STRUCTURE:
+✅ OUTPUT FORMAT:
+Return a single valid JSON object like this:
 {
-  "plan": [{
-    "day": "Day 1", "focus": "Upper Body", "exercises": [
-      {"name": "Incline Dumbbell Press", "sets": 4, "reps": 6, "rest_seconds": 120, "notes": "Focus on controlled tempo.", "youtube_search_query": "how to do incline dumbbell press", "instructions": ["Step 1...", "Step 2..."]}
-    ]
-  }],
-  "rationale": "A brief explanation of why this workout structure was chosen.",
-  "nutrition": {
-    "target_calories": 2200, "target_protein_grams": 150,
-    "meal_ideas": {
-      "breakfast": ["Scrambled eggs with spinach.", "Greek yogurt with berries."],
-      "lunch": ["Grilled chicken salad.", "Quinoa bowl with black beans."],
-      "dinner": ["Baked salmon with broccoli.", "Lean beef stir-fry."],
-      "snacks": ["Apple with peanut butter.", "Protein shake."]
-    }
-  }
+  "plan": [ { "day": "Day 1", "focus": "Pull (Back, Biceps)", "exercises": [ { "name": "Dumbbell Bent-Over Row", "sets": 3, "reps": 10, "rest_seconds": 60, "notes": "Use moderate weight. Avoid jerking motion.", "youtube_search_query": "how to do dumbbell bent over row", "instructions": ["Hinge at your hips, keeping your back straight.", "Pull the dumbbells towards your lower chest.", "Squeeze your back muscles at the top."] } ], "cardio": { "type": "MISS – Incline Walk", "duration_minutes": 30, "intensity": "Moderate (RPE 6/10)", "timing": "Post-weight training", "notes": "Supports fat loss via steady-state effort." } } ],
+  "meals": { "daily_calories": 2100, "macros": { "protein_g": 160, "carbs_g": 180, "fats_g": 70 } },
+  "summary": { "goal": "Fat Loss", "style": "Push/Pull/Legs", "days_per_week": 5, "volume_type": "Low volume, high intensity", "equipment_used": ["Dumbbells", "Resistance Bands"], "adjustments": ["Avoid deep lunges due to mild knee discomfort"], "user_profile": { "sex": "Male", "weight_kg": 82 } }
 }
 -------------------
 
-✅ PROGRAMMING RULES:
+✅ LOGIC RULES:
 1.  **Workout Plan:** For each exercise, you MUST include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
-2.  **Rationale:** Write a short, encouraging paragraph in the "rationale" field explaining the logic behind the plan's structure.
-3.  **Nutrition Plan:** If the user provides a "dietPreference" other than "No preference", you MUST generate the "nutrition" object. Calculate realistic "target_calories" and "target_protein_grams" based on their goal, gender, height, and weight. Provide 2-3 "meal_ideas" for breakfast, lunch, dinner, and snacks that align with the "dietPreference".
+2.  **Nutrition logic:** Use **Mifflin-St Jeor formula** as a base for daily calories. Set macros as: **Protein**: 1.8–2.2g/kg for fat loss, 2–2.5g/kg for muscle gain; **Fats**: 25–30% total calories; **Carbs**: Remaining cals.
+3.  Return **only valid JSON**, no explanations, markdown, or commentary.
 
 -------------------
 
-✅ INPUT VARIABLES TO CONSIDER:
+✅ INPUT VARIABLES TO BE INJECTED:
+- sex: "${data.gender}"
+- weight_kg: ${data.weight}
+- height_cm: ${data.height}
+- age: 28
 - days_per_week: ${data.days}
 - goal: "${data.goal}"
-- gender: "${data.gender}"
-- height_cm: ${data.height}
-- weight_kg": ${data.weight}
 - equipment: ["${data.equipment}"]
 - style: "${data.style || 'Not specified, choose best fit'}"
 - notes: "${data.limitations || 'None'}"
-- dietPreference: "${data.diet}"
 `;
 
                 let resultText = await callGeminiAPI(prompt);
@@ -636,18 +590,18 @@ You are a world-class certified strength and conditioning coach and a registered
 
         // --- UI Display ---
         function displayPlan(data) {
-            const { plan, rationale, nutrition } = data;
+            const { plan, summary, meals } = data;
             planDetailsContainer.innerHTML = '';
             nutritionSection.innerHTML = '';
 
-            if (rationale) {
-                planDetailsContainer.innerHTML += `<div class="col-span-full mb-8 bg-blue-900/50 border border-blue-500 rounded-xl p-6"><h3 class="text-2xl font-bold text-white mb-3">Why This Workout?</h3><p class="text-gray-300">${rationale}</p></div>`;
+            if (summary && summary.adjustments) {
+                planDetailsContainer.innerHTML += `<div class="col-span-full mb-8 bg-blue-900/50 border border-blue-500 rounded-xl p-6"><h3 class="text-2xl font-bold text-white mb-3">Why This Workout?</h3><p class="text-gray-300">${summary.adjustments.join('. ')}</p></div>`;
             }
 
             plan.forEach((day, dayIndex) => {
                 const exercisesHtml = day.exercises.map((ex, exIndex) => `
                     <li class="py-3 border-b border-gray-700 last:border-b-0">
-                        <div class="flex justify-between items-center gap-2">
+                        <div class="flex justify-between items-center gap-2 flex-wrap">
                             <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal">(view instructions)</button></span>
                             <div class="flex items-center gap-4 flex-shrink-0">
                                <p class="text-blue-400 font-semibold text-right whitespace-nowrap">${ex.sets} x ${ex.reps} reps</p>
@@ -659,16 +613,10 @@ You are a world-class certified strength and conditioning coach and a registered
                 planDetailsContainer.innerHTML += `<div class="plan-card"><h4 class="text-xl font-bold text-blue-400">${day.day}</h4><h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
             });
 
-            if (nutrition) {
-                const mealIdeasHtml = Object.entries(nutrition.meal_ideas).map(([mealType, ideas]) => `
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <h4 class="font-semibold capitalize text-white">${mealType}</h4>
-                        <ul class="list-disc list-inside text-gray-400 mt-1 space-y-1">
-                            ${ideas.map(idea => `<li>${idea}</li>`).join('')}
-                        </ul>
-                    </div>`).join('');
+            if (meals && meals.macros) {
+                const macros = meals.macros;
                 nutritionSection.innerHTML = `
-                    <div class="nutrition-card mt-12"><h3 class="text-3xl font-bold text-center text-white mb-6">AI Nutrition Guidance</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center mb-8"><div class="bg-gray-800 p-6 rounded-xl"><p class="text-lg text-gray-400">Target Calories</p><p class="text-4xl font-bold text-blue-400">${nutrition.target_calories} kcal</p></div><div class="bg-gray-800 p-6 rounded-xl"><p class="text-lg text-gray-400">Target Protein</p><p class="text-4xl font-bold text-blue-400">${nutrition.target_protein_grams}g</p></div></div><h4 class="text-2xl font-semibold text-white mb-4 text-center">Sample Meal Ideas</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">${mealIdeasHtml}</div></div>`;
+                    <div class="nutrition-card mt-12"><h3 class="text-3xl font-bold text-center text-white mb-6">AI Nutrition Guidance</h3><div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center"><div class="bg-gray-800 p-6 rounded-xl"><p class="text-lg text-gray-400">Calories</p><p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories} kcal</p></div><div class="bg-gray-800 p-6 rounded-xl"><p class="text-lg text-gray-400">Protein</p><p class="text-4xl font-bold text-blue-400">${macros.protein_g}g</p></div><div class="bg-gray-800 p-6 rounded-xl"><p class="text-lg text-gray-400">Fats</p><p class="text-4xl font-bold text-blue-400">${macros.fats_g}g</p></div><div class="bg-gray-800 p-6 rounded-xl sm:col-span-3"><p class="text-lg text-gray-400">Carbs</p><p class="text-4xl font-bold text-blue-400">${macros.carbs_g}g</p></div></div></div>`;
             }
         }
         
@@ -681,11 +629,11 @@ You are a world-class certified strength and conditioning coach and a registered
             modalVideo.src = `https://www.youtube.com/embed?listType=search&list=${videoQuery}`;
             youtubeLink.href = `https://www.youtube.com/results?search_query=${videoQuery}`;
             modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
-            exerciseModal.classList.remove('modal-hidden');
+            exerciseModal.classList.remove('hidden');
         }
 
         function closeExerciseModal() {
-            exerciseModal.classList.add('modal-hidden');
+            exerciseModal.classList.add('hidden');
             modalVideo.src = '';
         }
 
@@ -698,7 +646,7 @@ You are a world-class certified strength and conditioning coach and a registered
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-            const { plan, rationale, nutrition } = currentPlanData;
+            const { plan, summary, meals } = currentPlanData;
 
             let y = 20;
             const pageMargin = 15;
@@ -713,14 +661,14 @@ You are a world-class certified strength and conditioning coach and a registered
             y += 10;
 
             // Rationale
-            if (rationale) {
+            if (summary && summary.adjustments) {
                 doc.setFontSize(14);
                 doc.setFont("helvetica", "bold");
                 doc.text("Your Plan Rationale", pageMargin, y);
                 y += 7;
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "normal");
-                const rationaleLines = doc.splitTextToSize(rationale, usableWidth);
+                const rationaleLines = doc.splitTextToSize(summary.adjustments.join('. '), usableWidth);
                 doc.text(rationaleLines, pageMargin, y);
                 y += (rationaleLines.length * 5) + 5;
                 doc.setDrawColor(200);
@@ -762,8 +710,8 @@ You are a world-class certified strength and conditioning coach and a registered
             });
 
             // Nutrition
-            if (nutrition) {
-                if (y > pageHeight - 60) {
+            if (meals && meals.macros) {
+                if (y > pageHeight - 40) {
                     doc.addPage();
                     y = 20;
                 }
@@ -777,37 +725,13 @@ You are a world-class certified strength and conditioning coach and a registered
 
                 doc.setFontSize(11);
                 doc.setFont("helvetica", "normal");
-                doc.text(`Target Calories: ~${nutrition.target_calories} kcal`, pageMargin, y);
-                doc.text(`Target Protein: ~${nutrition.target_protein_grams}g`, pageMargin + 70, y);
-                y += 10;
-
-                doc.setFontSize(12);
-                doc.setFont("helvetica", "bold");
-                doc.text("Sample Meal Ideas", pageMargin, y);
+                doc.text(`Target Calories: ~${meals.macros.daily_calories || meals.daily_calories} kcal`, pageMargin, y);
                 y += 6;
-
-                doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-                Object.entries(nutrition.meal_ideas).forEach(([mealType, ideas]) => {
-                    if (y > pageHeight - 20) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.setFont("helvetica", "bold");
-                    doc.text(`${mealType.charAt(0).toUpperCase() + mealType.slice(1)}:`, pageMargin, y);
-                    y += 5;
-                    doc.setFont("helvetica", "normal");
-                    ideas.forEach(idea => {
-                        if (y > pageHeight - 10) {
-                            doc.addPage();
-                            y = 20;
-                        }
-                        const ideaLines = doc.splitTextToSize(`- ${idea}`, usableWidth - 5);
-                        doc.text(ideaLines, pageMargin + 5, y);
-                        y += (ideaLines.length * 5);
-                    });
-                    y += 3;
-                });
+                doc.text(`Target Protein: ~${meals.macros.protein_g}g`, pageMargin, y);
+                y += 6;
+                doc.text(`Target Fats: ~${meals.macros.fats_g}g`, pageMargin, y);
+                y += 6;
+                doc.text(`Target Carbs: ~${meals.macros.carbs_g}g`, pageMargin, y);
             }
 
             doc.save('GymPlan.pdf');
