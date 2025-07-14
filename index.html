@@ -261,6 +261,7 @@
         // --- State Management ---
         let currentStep = 1;
         const totalSteps = 3;
+        let currentPlanData = null; // To store the generated plan for PDF download
 
         // --- DOM Elements ---
         const progressBar = document.getElementById('progress-bar');
@@ -505,6 +506,7 @@ The following will be dynamically injected:
 
                 // Process and display the result
                 const resultJson = JSON.parse(resultText);
+                currentPlanData = resultJson; // Store data for PDF generation
                 displayPlan(resultJson.plan, resultJson.summary);
 
             } catch (error) {
@@ -613,38 +615,122 @@ The following will be dynamically injected:
         
         // --- Utility Functions ---
         function downloadPDF() {
+            if (!currentPlanData) {
+                alert("Please generate a plan first!");
+                return;
+            }
+
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'p',
-                unit: 'mm',
-                format: 'a4'
-            });
+            const doc = new jsPDF();
+            const { plan, summary } = currentPlanData;
 
-            const resultsContent = document.getElementById('results-container');
-            const originalTitle = resultsContent.querySelector('h2').innerText;
-            resultsContent.querySelector('h2').innerText = "Your GymPlan"; // Shorter title for PDF
+            let y = 20; // Initial Y position
+            const pageMargin = 15;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const usableWidth = pageWidth - (pageMargin * 2);
 
-            html2canvas(resultsContent, {
-                scale: 2, // Higher scale for better quality
-                backgroundColor: '#0a0a0a',
-                onclone: (document) => {
-                    // Ensure text is visible on the canvas
-                    document.querySelectorAll('*').forEach(el => el.style.color = '#e5e5e5');
-                    document.querySelector('h2').style.color = '#ffffff';
-                    document.querySelectorAll('.text-blue-400').forEach(el => el.style.color = '#60a5fa');
-                }
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const imgProps = pdf.getImageProperties(imgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            // --- Header ---
+            doc.setFontSize(24);
+            doc.setFont("helvetica", "bold");
+            doc.text("GymPlan", pageMargin, y);
+            y += 10;
+
+            // --- Summary ---
+            if (summary) {
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.text("Plan Overview", pageMargin, y);
+                y += 7;
                 
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save('GymPlan.pdf');
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                
+                doc.text(`Goal: ${summary.goal || 'N/A'}`, pageMargin, y);
+                doc.text(`Style: ${summary.style || 'N/A'}`, pageMargin + 70, y);
+                y += 6;
+                doc.text(`Days/Week: ${summary.days_per_week || 'N/A'}`, pageMargin, y);
+                doc.text(`Volume: ${summary.volume_type || 'N/A'}`, pageMargin + 70, y);
+                y += 10;
+                
+                // Draw a line
+                doc.setDrawColor(200); // light grey
+                doc.line(pageMargin, y, pageWidth - pageMargin, y);
+                y += 10;
+            }
 
-                // Restore original title
-                resultsContent.querySelector('h2').innerText = originalTitle;
+            // --- Daily Plans ---
+            plan.forEach(day => {
+                // Check for page break before adding a new day
+                if (y > pageHeight - 40) { // 40 is a buffer for footer etc.
+                    doc.addPage();
+                    y = 20;
+                }
+
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text(`${day.day}: ${day.focus}`, pageMargin, y);
+                y += 8;
+
+                // Exercises Table Header
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.text("Exercise", pageMargin + 1, y);
+                doc.text("Sets x Reps", pageMargin + 70, y);
+                doc.text("Rest", pageMargin + 105, y);
+                doc.text("Notes", pageMargin + 125, y);
+                y += 2;
+                doc.setDrawColor(150);
+                doc.line(pageMargin, y, pageWidth - pageMargin, y);
+                y += 6;
+
+                // Exercises
+                doc.setFont("helvetica", "normal");
+                day.exercises.forEach(ex => {
+                    const exerciseNameLines = doc.splitTextToSize(ex.name || '', 65);
+                    const notesLines = doc.splitTextToSize(ex.notes || '', 55);
+                    const lineCount = Math.max(exerciseNameLines.length, notesLines.length);
+                    
+                    if (y + (lineCount * 5) > pageHeight - 20) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.setFontSize(10);
+                    doc.text(exerciseNameLines, pageMargin + 1, y);
+                    doc.text(`${ex.sets} x ${ex.reps}`, pageMargin + 70, y);
+                    doc.text(`${ex.rest_seconds}s`, pageMargin + 105, y);
+                    doc.text(notesLines, pageMargin + 125, y);
+                    
+                    y += (lineCount * 5) + 2; 
+                });
+
+                // Cardio
+                if (day.cardio) {
+                     if (y > pageHeight - 25) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    y += 4; // space before cardio
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Cardio", pageMargin, y);
+                    y += 5;
+                    
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`${day.cardio.type}: ${day.cardio.duration_minutes} mins (${day.cardio.intensity})`, pageMargin + 5, y);
+                    y += 5;
+                    if(day.cardio.notes) {
+                         const cardioNotesLines = doc.splitTextToSize(day.cardio.notes, usableWidth - 5);
+                         doc.text(cardioNotesLines, pageMargin + 5, y);
+                         y += (cardioNotesLines.length * 4) + 2;
+                    }
+                }
+                
+                y += 10; // Space between days
             });
+
+            doc.save('GymPlan.pdf');
         }
 
     </script>
