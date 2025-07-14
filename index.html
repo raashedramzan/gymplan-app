@@ -217,7 +217,7 @@
                          <p class="text-gray-400 mt-2 max-w-2xl mx-auto">Here is your AI-generated workout plan. You can edit your inputs or download it.</p>
                     </div>
                    
-                    <div id="plan-details" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div id="plan-details" class="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                         <!-- Plan cards will be injected here -->
                     </div>
 
@@ -404,22 +404,88 @@
             try {
                 // Construct the prompt for the Gemini API
                 const prompt = `
-                    Create a detailed, personalized workout plan based on the following criteria.
-                    The output must be a JSON object. Do not include any text outside of the JSON object.
-                    The JSON object should have a single key "plan" which is an array of objects, where each object represents a workout day.
-                    Each day object must have three properties: "day" (e.g., "Day 1"), "focus" (e.g., "Upper Body Push"), and "exercises" which is an array of exercise objects.
-                    Each exercise object must have three properties: "name" (e.g., "Dumbbell Shoulder Press"), "sets" (e.g., "3x10"), and "alternative" (e.g., "Pike Pushups if no weights").
-                    Provide a well-rounded plan that logically follows the user's preferred training split if specified, or choose a suitable one if not.
-                    If "Calisthenics" is selected, ensure all exercises are bodyweight exercises and provide creative alternatives. If "Commercial Gym" is selected, feel free to use a mix of machines, free weights, and barbells. If "Dumbbells at Home" is selected, prioritize dumbbell exercises.
-                    Take into account the user's limitations.
+You are a certified strength and conditioning coach and exercise physiologist. Your task is to generate a science-based, customized weekly workout plan for a user based on their goals, equipment, and available training days.
 
-                    User Criteria:
-                    - Training Days per Week: ${data.days}
-                    - Primary Goal: ${data.goal}
-                    - Equipment Available: ${data.equipment}
-                    - Preferred Training Split: ${data.style || 'Not specified, choose the best fit.'}
-                    - Injuries or Limitations: ${data.limitations || 'None specified.'}
-                `;
+The plan must be realistic, time-efficient, goal-specific, and formatted in **valid JSON** only.
+
+-------------------
+✅ OUTPUT FORMAT:
+Return a single JSON object with no explanation. Structure:
+{
+  "plan": [
+    {
+      "day": "Day 1",
+      "focus": "Upper Body",
+      "exercises": [
+        {
+          "name": "Incline Dumbbell Press",
+          "sets": 4,
+          "reps": 6,
+          "rest_seconds": 120,
+          "notes": "Use 75–85% of 1RM. Focus on controlled tempo."
+        }
+      ],
+      "cardio": {
+        "type": "Treadmill walking",
+        "duration_minutes": 25,
+        "intensity": "Low (RPE 5/10)",
+        "timing": "Post-weight training",
+        "notes": "Intended to support fat oxidation while preserving muscle mass"
+      }
+    }
+  ],
+  "summary": {
+    "goal": "Fat Loss",
+    "style": "Upper/Lower",
+    "days_per_week": 4,
+    "volume_type": "Low volume, high intensity",
+    "equipment_used": ["Dumbbells", "Pull-up Bar"]
+  }
+}
+-------------------
+
+✅ PROGRAMMING RULES:
+
+1. Match number of training days to "days_per_week" input. Distribute body parts evenly.
+2. Match training style: e.g., Upper/Lower, Push/Pull/Legs, Full Body.
+3. Match goal to training logic:
+   - **Fat Loss** → Full-body or high-frequency training with compound lifts, 6–10 reps, short rests (45–90 sec)
+   - **Muscle Gain** → Low volume (3–4 exercises/day), high intensity (4–8 reps, 75–90% 1RM), long rests (90–180 sec)
+   - **Strength** → Very low rep range (3–5 reps), multi-joint movements, full rest (2–4 mins)
+4. Begin workouts with **compound lifts**, followed by isolations.
+5. Account for **equipment** — do not suggest barbell exercises if only dumbbells are available.
+6. Avoid overhead lifts if injury notes mention shoulder issues.
+7. Include **cardio object per day**:
+   - If goal = "Fat Loss":
+     - Add 20–40 mins of MISS or 10–20 min HIIT **after** weight training
+   - If goal = "Muscle Gain":
+     - Add 15–30 mins of **light walking** post-workout (optional but encouraged)
+   - Include **intensity** (e.g., RPE 4–6 for MISS or zone 2)
+8. Do not repeat the same exercises within a single week.
+9. JSON must be **valid**, no trailing commas or extra content.
+
+-------------------
+
+✅ INPUT VARIABLES TO CONSIDER:
+The following will be dynamically injected:
+- days_per_week: ${data.days}
+- goal: "${data.goal}"
+- equipment: ["${data.equipment}"]
+- style: "${data.style || 'Not specified, choose best fit'}"
+- notes: "${data.limitations || 'None'}"
+
+-------------------
+
+✅ TONE & LIMITATIONS:
+- Exercise names must be precise, not generic
+- No made-up exercises
+- No explanatory text or summaries
+- Return only:
+{
+  "plan": [...],
+  "summary": {...}
+}
+`;
 
                 // Make the API call
                 let resultText = await callGeminiAPI(prompt);
@@ -433,7 +499,7 @@
 
                 // Process and display the result
                 const resultJson = JSON.parse(resultText);
-                displayPlan(resultJson.plan);
+                displayPlan(resultJson.plan, resultJson.summary);
 
             } catch (error) {
                 console.error("Error generating plan:", error);
@@ -445,7 +511,7 @@
             }
         });
 
-           async function callGeminiAPI(prompt) {
+        async function callGeminiAPI(prompt) {
             // The URL for our Vercel Function
             const functionUrl = '/api/generate-plan';
 
@@ -472,29 +538,67 @@
             }
         }
 
-
-
         // --- UI Display ---
-        function displayPlan(plan) {
-            planDetailsContainer.innerHTML = ''; // Clear previous content
+        function displayPlan(plan, summary) {
+            // Clear previous content
+            planDetailsContainer.innerHTML = '';
+
+            // Display summary at the top if it exists
+            if (summary) {
+                const summaryHtml = `
+                    <div class="col-span-full mb-8 bg-[#1f2937] border border-gray-700 rounded-xl p-6">
+                        <h3 class="text-2xl font-bold text-white mb-4">Plan Overview</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div>
+                                <p class="text-sm text-gray-400">Goal</p>
+                                <p class="text-lg font-semibold">${summary.goal || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">Style</p>
+                                <p class="text-lg font-semibold">${summary.style || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">Days/Week</p>
+                                <p class="text-lg font-semibold">${summary.days_per_week || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">Volume</p>
+                                <p class="text-lg font-semibold">${summary.volume_type || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                planDetailsContainer.innerHTML += summaryHtml;
+            }
+
+            // Display daily plan cards
             plan.forEach(day => {
                 const exercisesHtml = day.exercises.map(ex => `
-                    <li class="flex justify-between items-start py-3 border-b border-gray-700">
-                        <div>
-                            <p class="font-semibold">${ex.name}</p>
-                            <p class="text-sm text-gray-400">Alternative: ${ex.alternative}</p>
+                    <li class="py-3 border-b border-gray-700">
+                        <div class="flex justify-between items-center">
+                            <p class="font-semibold text-white">${ex.name}</p>
+                            <p class="text-blue-400 font-semibold">${ex.sets} sets x ${ex.reps} reps</p>
                         </div>
-                        <p class="text-blue-400 font-semibold">${ex.sets}</p>
+                        <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
                     </li>
                 `).join('');
+
+                const cardioHtml = day.cardio ? `
+                    <div class="mt-4 pt-4 border-t border-gray-700">
+                        <h6 class="font-semibold text-blue-400">Cardio</h6>
+                        <p class="text-sm text-gray-300">${day.cardio.type}: ${day.cardio.duration_minutes} mins</p>
+                        <p class="text-sm text-gray-400">Intensity: ${day.cardio.intensity}. ${day.cardio.notes || ''}</p>
+                    </div>
+                ` : '';
 
                 const dayCard = `
                     <div class="plan-card bg-[#1f2937] border border-gray-700 rounded-xl p-6 flex flex-col">
                         <h4 class="text-xl font-bold text-blue-400">${day.day}</h4>
-                        <h5 class="text-lg font-semibold mb-4">${day.focus}</h5>
+                        <h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5>
                         <ul class="space-y-2 flex-grow">
                             ${exercisesHtml}
                         </ul>
+                        ${cardioHtml}
                     </div>
                 `;
                 planDetailsContainer.innerHTML += dayCard;
