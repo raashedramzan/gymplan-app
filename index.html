@@ -93,7 +93,7 @@
     <header class="absolute top-0 left-0 right-0 z-10 p-4">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold text-white">Gym<span class="text-blue-500">Plan</span></h1>
-            <button onclick="scrollToForm()" class="hidden md:inline-block px-6 py-2 font-semibold text-white rounded-lg btn-primary">Build Your Plan</button>
+            <a href="#plan-generator" class="hidden md:inline-block px-6 py-2 font-semibold text-white rounded-lg btn-primary">Build Your Plan</a>
         </div>
     </header>
 
@@ -103,7 +103,7 @@
             <div class="max-w-3xl">
                 <h2 class="text-4xl md:text-6xl font-black text-white leading-tight mb-4">Stop Guessing. Start Training.</h2>
                 <p class="text-lg md:text-xl text-gray-300 mb-8">Get a science-backed, personalized workout plan in seconds. Tailored to your goals, schedule, and equipment.</p>
-                <button onclick="scrollToForm()" class="px-10 py-4 text-lg font-bold text-white rounded-lg btn-primary">Build Your Plan Now</button>
+                <a href="#plan-generator" class="px-10 py-4 text-lg font-bold text-white rounded-lg btn-primary">Build Your Plan Now</a>
             </div>
         </section>
 
@@ -328,10 +328,6 @@
         });
 
         // --- Navigation ---
-        function scrollToForm() {
-            planGeneratorSection.scrollIntoView({ behavior: 'smooth' });
-        }
-
         function nextStep(step) {
             if (validateStep(currentStep)) {
                 document.getElementById(`step-${currentStep}`).classList.remove('active');
