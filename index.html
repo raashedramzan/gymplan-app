@@ -433,7 +433,25 @@
             const targetId = event.currentTarget.getAttribute("href");
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                manualSmoothScroll(targetElement);
+            }
+        }
+
+        function manualSmoothScroll(element) {
+            const targetPosition = element.offsetTop;
+            const startPosition = window.pageYOffset;
+            const distance = targetPosition - startPosition;
+            const duration = 750; // milliseconds
+            let start = null;
+
+            window.requestAnimationFrame(step);
+
+            function step(timestamp) {
+                if (!start) start = timestamp;
+                const progress = timestamp - start;
+                const ease = progress / duration < 0.5 ? 2 * (progress / duration) * (progress / duration) : -1 + (4 - 2 * (progress / duration)) * (progress / duration);
+                window.scrollTo(0, startPosition + distance * ease);
+                if (progress < duration) window.requestAnimationFrame(step);
             }
         }
 
@@ -512,7 +530,7 @@
 
             planGeneratorSection.classList.add('hidden');
             planOutputSection.classList.remove('hidden');
-            planOutputSection.scrollIntoView({ behavior: 'smooth' });
+            manualSmoothScroll(planOutputSection);
 
             try {
                 const prompt = `
@@ -673,8 +691,126 @@ You are a world-class certified strength and conditioning coach and a registered
 
         // --- Utility Functions ---
         function downloadPDF() {
-            if (!currentPlanData) return alert("Please generate a plan first!");
-            alert("The custom PDF download is being upgraded to include all the new features. It will be back soon!");
+            if (!currentPlanData) {
+                alert("Please generate a plan first!");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            const { plan, rationale, nutrition } = currentPlanData;
+
+            let y = 20;
+            const pageMargin = 15;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const usableWidth = pageWidth - (pageMargin * 2);
+
+            // Header
+            doc.setFontSize(24);
+            doc.setFont("helvetica", "bold");
+            doc.text("GymPlan.fit", pageMargin, y);
+            y += 10;
+
+            // Rationale
+            if (rationale) {
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text("Your Plan Rationale", pageMargin, y);
+                y += 7;
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                const rationaleLines = doc.splitTextToSize(rationale, usableWidth);
+                doc.text(rationaleLines, pageMargin, y);
+                y += (rationaleLines.length * 5) + 5;
+                doc.setDrawColor(200);
+                doc.line(pageMargin, y, pageWidth - pageMargin, y);
+                y += 10;
+            }
+
+            // Daily Plans
+            plan.forEach(day => {
+                if (y > pageHeight - 40) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text(`${day.day}: ${day.focus}`, pageMargin, y);
+                y += 8;
+
+                day.exercises.forEach(ex => {
+                    const exerciseText = `${ex.name} - ${ex.sets} sets x ${ex.reps} reps, ${ex.rest_seconds}s rest.`;
+                    const notesText = `Notes: ${ex.notes || 'None'}`;
+                    const exerciseLines = doc.splitTextToSize(exerciseText, usableWidth);
+                    const notesLines = doc.splitTextToSize(notesText, usableWidth);
+
+                    if (y + (exerciseLines.length * 5) + (notesLines.length * 5) > pageHeight - 20) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(exerciseLines, pageMargin, y);
+                    y += (exerciseLines.length * 5);
+                    doc.setFontSize(9);
+                    doc.setFont("helvetica", "italic");
+                    doc.text(notesLines, pageMargin + 2, y);
+                    y += (notesLines.length * 5) + 3;
+                });
+                y += 7;
+            });
+
+            // Nutrition
+            if (nutrition) {
+                if (y > pageHeight - 60) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setDrawColor(200);
+                doc.line(pageMargin, y, pageWidth - pageMargin, y);
+                y += 10;
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.text("Nutrition Guidance", pageMargin, y);
+                y += 7;
+
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                doc.text(`Target Calories: ~${nutrition.target_calories} kcal`, pageMargin, y);
+                doc.text(`Target Protein: ~${nutrition.target_protein_grams}g`, pageMargin + 70, y);
+                y += 10;
+
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text("Sample Meal Ideas", pageMargin, y);
+                y += 6;
+
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                Object.entries(nutrition.meal_ideas).forEach(([mealType, ideas]) => {
+                    if (y > pageHeight - 20) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`${mealType.charAt(0).toUpperCase() + mealType.slice(1)}:`, pageMargin, y);
+                    y += 5;
+                    doc.setFont("helvetica", "normal");
+                    ideas.forEach(idea => {
+                        if (y > pageHeight - 10) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        const ideaLines = doc.splitTextToSize(`- ${idea}`, usableWidth - 5);
+                        doc.text(ideaLines, pageMargin + 5, y);
+                        y += (ideaLines.length * 5);
+                    });
+                    y += 3;
+                });
+            }
+
+            doc.save('GymPlan.pdf');
         }
 
     </script>
