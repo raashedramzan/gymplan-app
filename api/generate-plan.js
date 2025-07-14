@@ -1,8 +1,8 @@
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
-export const handler = async (event, context) => {
+module.exports = async (req, res) => {
   // Get the prompt from the request body
-  const { prompt } = JSON.parse(event.body);
+  const { prompt } = req.body;
 
   // Get the API key from the environment variables
   const apiKey = process.env.GEMINI_API_KEY;
@@ -22,24 +22,18 @@ export const handler = async (event, context) => {
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      return {
-        statusCode: response.status,
-        body: JSON.stringify({ error: `API call failed: ${errorBody}` }),
-      };
-    }
-
     const result = await response.json();
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(result),
-    };
+    if (!response.ok) {
+      // Send the error from the API back to the client
+      return res.status(response.status).json(result);
+    }
+
+    // Send the successful result back to the client
+    res.status(200).json(result);
+
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
-    };
+    // Handle network or other unexpected errors
+    res.status(500).json({ error: { message: error.message } });
   }
 };
