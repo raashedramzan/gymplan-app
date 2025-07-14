@@ -113,6 +113,24 @@
             transform: scale(1.02);
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
+        
+        /* Modal Styles */
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal-hidden {
+            pointer-events: none;
+        }
+        .modal-hidden .modal-backdrop {
+            opacity: 0;
+        }
+        .modal-hidden .modal-content {
+            opacity: 0;
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -299,6 +317,43 @@
         <p class="text-gray-400">&copy; 2025 GymPlan. All Rights Reserved. Powered by AI.</p>
     </footer>
 
+    <!-- Exercise Detail Modal -->
+    <div id="exerciseModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-75" onclick="closeExerciseModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform transition-all duration-300 ease-in-out">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h3 id="modalTitle" class="text-2xl font-bold text-white">Exercise Details</h3>
+                <button onclick="closeExerciseModal()" class="text-gray-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 flex-grow overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Video Player -->
+                    <div>
+                        <div class="aspect-w-16 aspect-h-9 bg-black rounded-lg">
+                            <iframe id="modalVideo" class="w-full h-full rounded-lg" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <a id="youtubeLink" href="#" target="_blank" class="block text-center text-sm text-blue-400 hover:underline mt-2">Watch on YouTube if video is unavailable</a>
+                    </div>
+                    <!-- Instructions -->
+                    <div>
+                        <h4 class="text-xl font-semibold text-white mb-3">Instructions</h4>
+                        <ul id="modalInstructions" class="list-decimal list-inside space-y-2 text-gray-300">
+                            <!-- Instructions will be injected here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         // --- Form Data ---
         const trainingDaysData = [1, 2, 3, 4, 5, 6, 7];
@@ -327,6 +382,11 @@
         const subGoalOptions = document.getElementById('subGoalOptions');
         const equipmentContainer = document.getElementById('equipmentContainer');
         const genderContainer = document.getElementById('genderContainer');
+        const exerciseModal = document.getElementById('exerciseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalVideo = document.getElementById('modalVideo');
+        const modalInstructions = document.getElementById('modalInstructions');
+        const youtubeLink = document.getElementById('youtubeLink');
         
         // --- Form Initialization ---
         function initializeForm() {
@@ -463,14 +523,14 @@ You are a certified strength and conditioning coach and clinical exercise physio
 ✅ OUTPUT FORMAT:
 Return a single valid JSON object like this:
 {
-  "plan": [ { "day": "Day 1", "focus": "Pull (Back, Biceps)", "exercises": [ { "name": "Dumbbell Bent-Over Row", "sets": 3, "reps": 10, "rest_seconds": 60, "notes": "Use moderate weight. Avoid jerking motion." } ], "cardio": { "type": "MISS – Incline Walk", "duration_minutes": 30, "intensity": "Moderate (RPE 6/10)", "timing": "Post-weight training", "notes": "Supports fat loss via steady-state effort." } } ],
+  "plan": [ { "day": "Day 1", "focus": "Pull (Back, Biceps)", "exercises": [ { "name": "Dumbbell Bent-Over Row", "sets": 3, "reps": 10, "rest_seconds": 60, "notes": "Use moderate weight. Avoid jerking motion.", "youtube_search_query": "how to do dumbbell bent over row", "instructions": ["Hinge at your hips, keeping your back straight.", "Pull the dumbbells towards your lower chest.", "Squeeze your back muscles at the top."] } ], "cardio": { "type": "MISS – Incline Walk", "duration_minutes": 30, "intensity": "Moderate (RPE 6/10)", "timing": "Post-weight training", "notes": "Supports fat loss via steady-state effort." } } ],
   "meals": { "daily_calories": 2100, "macros": { "protein_g": 160, "carbs_g": 180, "fats_g": 70 } },
   "summary": { "goal": "Fat Loss", "style": "Push/Pull/Legs", "days_per_week": 5, "volume_type": "Low volume, high intensity", "equipment_used": ["Dumbbells", "Resistance Bands"], "adjustments": ["Avoid deep lunges due to mild knee discomfort"], "user_profile": { "sex": "Male", "weight_kg": 82 } }
 }
 -------------------
 
 ✅ LOGIC RULES:
-1.  **Workout Plan:** For each exercise, you MUST include "name", "sets", "reps", "rest_seconds", and "notes". Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
+1.  **Workout Plan:** For each exercise, you MUST include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
 2.  **Nutrition logic:** Use **Mifflin-St Jeor formula** as a base for daily calories. Set macros as: **Protein**: 1.8–2.2g/kg for fat loss, 2–2.5g/kg for muscle gain; **Fats**: 25–30% total calories; **Carbs**: Remaining cals.
 3.  **Rationale:** The "adjustments" array in the summary should serve as the rationale, explaining how the plan was tailored to the user's specific notes and limitations. If there are no notes, this can be a more general statement about the plan's design.
 4.  Return **only valid JSON**, no explanations, markdown, or commentary.
@@ -520,13 +580,40 @@ Return a single valid JSON object like this:
             throw new Error("Failed to parse the plan from the API response.");
         }
         
+        async function swapExercise(dayIndex, exIndex, buttonElement) {
+            const originalButtonContent = buttonElement.innerHTML;
+            buttonElement.innerHTML = `<div class="swap-loader"></div>`;
+            buttonElement.disabled = true;
+            try {
+                const exerciseToSwap = currentPlanData.plan[dayIndex].exercises[exIndex];
+                const formData = new FormData(form);
+                const equipment = formData.get('equipment');
+                const swapPrompt = `Provide a single suitable alternative exercise for "${exerciseToSwap.name}". The user has access to a "${equipment}". Return a single valid JSON object for the new exercise, with no explanation. The JSON object must have the exact same structure as the original: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "...", "youtube_search_query": "...", "instructions": ["..."] }. Original exercise for context: ${JSON.stringify(exerciseToSwap)}`;
+                let resultText = await callGeminiAPI(swapPrompt);
+                const startIndex = resultText.indexOf('{');
+                const endIndex = resultText.lastIndexOf('}');
+                if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+                    resultText = resultText.substring(startIndex, endIndex + 1);
+                }
+                const newExercise = JSON.parse(resultText);
+                currentPlanData.plan[dayIndex].exercises[exIndex] = newExercise;
+                displayPlan(currentPlanData);
+            } catch (error) {
+                console.error("Error swapping exercise:", error);
+                alert("Could not swap the exercise. Please try again.");
+                buttonElement.innerHTML = originalButtonContent;
+            } finally {
+                buttonElement.disabled = false;
+            }
+        }
+
         // --- UI Display ---
         function displayPlan(data) {
             const { plan, summary, meals } = data;
             planDetailsContainer.innerHTML = '';
             nutritionSection.innerHTML = '';
 
-            if (summary && summary.adjustments && summary.adjustments.length > 0 && summary.adjustments[0]) {
+            if (summary && summary.adjustments && summary.adjustments.length > 0 && summary.adjustments[0] && summary.adjustments[0].toLowerCase() !== 'none') {
                 planDetailsContainer.innerHTML += `<div class="col-span-full mb-8 bg-blue-900/50 border border-blue-500 rounded-xl p-6"><h3 class="text-2xl font-bold text-white mb-3">Why This Workout?</h3><p class="text-gray-300">${summary.adjustments.join('. ')}</p></div>`;
             }
 
@@ -534,9 +621,10 @@ Return a single valid JSON object like this:
                 const exercisesHtml = day.exercises.map((ex, exIndex) => `
                     <li class="py-3 border-b border-gray-700 last:border-b-0">
                         <div class="flex justify-between items-center gap-2 flex-wrap">
-                            <span class="font-semibold text-white">${ex.name}</span>
+                            <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal">(view instructions)</button></span>
                             <div class="flex items-center gap-4 flex-shrink-0">
                                <p class="text-blue-400 font-semibold text-right whitespace-nowrap">${ex.sets} x ${ex.reps} reps</p>
+                               <button onclick="swapExercise(${dayIndex}, ${exIndex}, this)" class="text-xs bg-gray-600 hover:bg-gray-500 rounded-full px-2 py-1 transition">Swap</button>
                             </div>
                         </div>
                         <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
@@ -573,6 +661,23 @@ Return a single valid JSON object like this:
             }
         }
         
+        // --- Modal Functions ---
+        function openExerciseModal(dayIndex, exIndex) {
+            if (!currentPlanData) return;
+            const exercise = currentPlanData.plan[dayIndex].exercises[exIndex];
+            modalTitle.textContent = exercise.name;
+            const videoQuery = encodeURIComponent(exercise.youtube_search_query);
+            modalVideo.src = `https://www.youtube.com/embed?listType=search&list=${videoQuery}`;
+            youtubeLink.href = `https://www.youtube.com/results?search_query=${videoQuery}`;
+            modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
+            exerciseModal.classList.remove('hidden');
+        }
+
+        function closeExerciseModal() {
+            exerciseModal.classList.add('hidden');
+            modalVideo.src = '';
+        }
+
         // --- Utility Functions ---
         function downloadPDF() {
             if (!currentPlanData) {
