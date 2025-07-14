@@ -102,7 +102,7 @@
             100% { transform: rotate(360deg); }
         }
         /* Style for the form labels */
-        form label[for^="day-"], form label[for^="mainGoal-"], form label[for^="subGoal-"], form label[for^="equip-"], form label[for^="diet-"] {
+        form label[for^="day-"], form label[for^="mainGoal-"], form label[for^="subGoal-"], form label[for^="equip-"], form label[for^="diet-"], form label[for^="gender-"] {
             transition: all 0.2s ease-in-out;
         }
 
@@ -112,6 +112,24 @@
             background-color: #3b82f620;
             transform: scale(1.02);
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Modal Styles */
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal-hidden {
+            pointer-events: none;
+        }
+        .modal-hidden .modal-backdrop {
+            opacity: 0;
+        }
+        .modal-hidden .modal-content {
+            opacity: 0;
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -196,19 +214,43 @@
                             </div>
                             <button type="button" onclick="nextStep(2)" class="w-full px-6 py-3 font-semibold text-white rounded-lg btn-primary">Next</button>
                         </div>
-
-                        <!-- Step 2: Equipment -->
+                        
+                        <!-- Step 2: User Stats -->
                         <div id="step-2" class="form-step">
-                            <label class="block text-lg font-medium mb-3">What equipment do you have access to?</label>
-                            <div id="equipmentContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6"></div>
+                            <label class="block text-lg font-medium mb-3">Tell us about yourself</label>
+                            <p class="text-sm text-gray-400 mb-4">This helps us calculate more accurate nutrition targets.</p>
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-2">Gender</label>
+                                <div id="genderContainer" class="grid grid-cols-2 gap-3"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label for="height" class="block text-sm font-medium mb-2">Height (cm)</label>
+                                    <input type="number" name="height" id="height" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" required>
+                                </div>
+                                <div>
+                                    <label for="weight" class="block text-sm font-medium mb-2">Weight (kg)</label>
+                                    <input type="number" name="weight" id="weight" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" required>
+                                </div>
+                            </div>
                              <div class="flex justify-between">
                                 <button type="button" onclick="prevStep(1)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
                                 <button type="button" onclick="nextStep(3)" class="px-6 py-3 font-semibold text-white rounded-lg btn-primary">Next</button>
                             </div>
                         </div>
 
-                        <!-- Step 3: Style & Limitations -->
+                        <!-- Step 3: Equipment -->
                         <div id="step-3" class="form-step">
+                            <label class="block text-lg font-medium mb-3">What equipment do you have access to?</label>
+                            <div id="equipmentContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6"></div>
+                             <div class="flex justify-between">
+                                <button type="button" onclick="prevStep(2)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
+                                <button type="button" onclick="nextStep(4)" class="px-6 py-3 font-semibold text-white rounded-lg btn-primary">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Style & Limitations -->
+                        <div id="step-4" class="form-step">
                             <div class="mb-6">
                                 <label for="trainingStyle" class="block text-lg font-medium mb-3">Preferred training split (optional)</label>
                                 <select id="trainingStyle" name="trainingStyle" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -224,18 +266,18 @@
                                 <textarea id="limitations" name="limitations" rows="4" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 'Bad lower back, avoid heavy deadlifts'"></textarea>
                             </div>
                             <div class="flex justify-between">
-                                <button type="button" onclick="prevStep(2)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
-                                <button type="button" onclick="nextStep(4)" class="px-6 py-3 font-semibold text-white rounded-lg btn-primary">Next</button>
+                                <button type="button" onclick="prevStep(3)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
+                                <button type="button" onclick="nextStep(5)" class="px-6 py-3 font-semibold text-white rounded-lg btn-primary">Next</button>
                             </div>
                         </div>
                         
-                        <!-- Step 4: Nutrition -->
-                        <div id="step-4" class="form-step">
+                        <!-- Step 5: Nutrition -->
+                        <div id="step-5" class="form-step">
                              <label class="block text-lg font-medium mb-3">Dietary Preferences (optional)</label>
                              <p class="text-sm text-gray-400 mb-4">Select a preference to receive AI-generated meal ideas with your plan.</p>
                              <div id="dietContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6"></div>
                              <div class="flex justify-between">
-                                <button type="button" onclick="prevStep(3)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
+                                <button type="button" onclick="prevStep(4)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
                                 <button type="submit" class="w-1/2 px-6 py-3 font-semibold text-white rounded-lg btn-primary">Generate Plan</button>
                             </div>
                         </div>
@@ -287,6 +329,43 @@
         <p class="text-gray-400">&copy; 2025 GymPlan. All Rights Reserved. Powered by AI.</p>
     </footer>
 
+    <!-- Exercise Detail Modal -->
+    <div id="exerciseModal" class="modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-75" onclick="closeExerciseModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="modal-content bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h3 id="modalTitle" class="text-2xl font-bold text-white">Exercise Details</h3>
+                <button onclick="closeExerciseModal()" class="text-gray-400 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 flex-grow overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Video Player -->
+                    <div>
+                        <div class="aspect-w-16 aspect-h-9 bg-black rounded-lg">
+                            <iframe id="modalVideo" class="w-full h-full rounded-lg" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <a id="youtubeLink" href="#" target="_blank" class="block text-center text-sm text-blue-400 hover:underline mt-2">Watch on YouTube if video is unavailable</a>
+                    </div>
+                    <!-- Instructions -->
+                    <div>
+                        <h4 class="text-xl font-semibold text-white mb-3">Instructions</h4>
+                        <ul id="modalInstructions" class="list-decimal list-inside space-y-2 text-gray-300">
+                            <!-- Instructions will be injected here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         // --- Form Data ---
         const trainingDaysData = [1, 2, 3, 4, 5, 6, 7];
@@ -294,10 +373,11 @@
         const subGoalsData = ['Science-Based', 'Intense'];
         const equipmentData = ['Commercial Gym', 'Dumbbells at Home', 'Calisthenics'];
         const dietData = ['Standard', 'Vegetarian', 'Vegan'];
+        const genderData = ['Male', 'Female'];
 
         // --- State Management ---
         let currentStep = 1;
-        const totalSteps = 4; // Updated to 4 steps
+        const totalSteps = 5; // Updated to 5 steps
         let currentPlanData = null; // To store the generated plan for PDF download
 
         // --- DOM Elements ---
@@ -315,51 +395,27 @@
         const subGoalOptions = document.getElementById('subGoalOptions');
         const equipmentContainer = document.getElementById('equipmentContainer');
         const dietContainer = document.getElementById('dietContainer');
+        const genderContainer = document.getElementById('genderContainer');
+        const exerciseModal = document.getElementById('exerciseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalVideo = document.getElementById('modalVideo');
+        const modalInstructions = document.getElementById('modalInstructions');
+        const youtubeLink = document.getElementById('youtubeLink');
         
         // --- Form Initialization ---
         function initializeForm() {
-            // Populate Training Days
             trainingDaysContainer.innerHTML = trainingDaysData.map(day => `
-                <div>
-                    <input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" required>
-                    <label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
-                        ${day}
-                    </label>
-                </div>
-            `).join('');
-
-            // Populate Main Goals
+                <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" required><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${day}</label></div>`).join('');
             mainGoalContainer.innerHTML = mainGoalsData.map(goal => `
-                <div>
-                    <input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required>
-                    <label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
-                        ${goal}
-                    </label>
-                </div>
-            `).join('');
-            
-            // Populate Equipment
+                <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${goal}</label></div>`).join('');
             equipmentContainer.innerHTML = equipmentData.map(equip => `
-                <div>
-                    <input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required>
-                    <label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
-                        ${equip}
-                    </label>
-                </div>
-            `).join('');
-            
-            // Populate Diet Preferences
+                <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${equip}</label></div>`).join('');
             dietContainer.innerHTML = dietData.map(diet => `
-                <div>
-                    <input type="radio" id="diet-${diet.replace(/ /g,'')}" name="dietPreference" value="${diet}" class="hidden peer">
-                    <label for="diet-${diet.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
-                        ${diet}
-                    </label>
-                </div>
-            `).join('');
+                <div><input type="radio" id="diet-${diet.replace(/ /g,'')}" name="dietPreference" value="${diet}" class="hidden peer"><label for="diet-${diet.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${diet}</label></div>`).join('');
+            genderContainer.innerHTML = genderData.map(gender => `
+                <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer" required><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${gender}</label></div>`).join('');
         }
         
-        // Run initialization on page load
         document.addEventListener('DOMContentLoaded', initializeForm);
 
         // --- Event Listeners ---
@@ -367,13 +423,7 @@
             if (event.target.name === 'mainGoal') {
                 subGoalContainer.classList.remove('hidden');
                 subGoalOptions.innerHTML = subGoalsData.map(subGoal => `
-                     <div>
-                        <input type="radio" id="subGoal-${subGoal.replace(/ /g, '')}" name="subGoal" value="${subGoal}" class="hidden peer" required>
-                        <label for="subGoal-${subGoal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">
-                            ${subGoal}
-                        </label>
-                    </div>
-                `).join('');
+                     <div><input type="radio" id="subGoal-${subGoal.replace(/ /g, '')}" name="subGoal" value="${subGoal}" class="hidden peer" required><label for="subGoal-${subGoal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50">${subGoal}</label></div>`).join('');
             }
         });
 
@@ -383,10 +433,7 @@
             const targetId = event.currentTarget.getAttribute("href");
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
@@ -418,10 +465,8 @@
             for (const input of inputs) {
                 if ((input.type === 'radio' || input.type === 'checkbox')) {
                     const groupName = input.name;
-                    const groupContainer = input.closest('.mb-6');
-                    if (groupContainer && window.getComputedStyle(groupContainer).display === 'none') {
-                        continue; // Skip validation for hidden fields
-                    }
+                    const groupContainer = input.closest('.form-step');
+                    if (groupContainer && window.getComputedStyle(groupContainer).display === 'none') continue;
                     if (!document.querySelector(`input[name="${groupName}"]:checked`)) {
                         isValid = false;
                         break;
@@ -431,10 +476,7 @@
                     break;
                 }
             }
-
-            if (!isValid) {
-                alert('Please fill out all required fields before proceeding.');
-            }
+            if (!isValid) alert('Please fill out all required fields before proceeding.');
             return isValid;
         }
 
@@ -443,7 +485,7 @@
             planGeneratorSection.classList.remove('hidden');
             resultsContainer.classList.add('hidden');
             loaderContainer.classList.remove('hidden');
-            planDetailsContainer.innerHTML = ''; // Clear previous results
+            planDetailsContainer.innerHTML = '';
             nutritionSection.innerHTML = '';
         }
 
@@ -451,7 +493,6 @@
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
             
-            // Collect form data
             const formData = new FormData(form);
             const mainGoal = formData.get('mainGoal');
             const subGoal = formData.get('subGoal');
@@ -460,55 +501,38 @@
             const data = {
                 days: formData.get('trainingDays'),
                 goal: combinedGoal,
+                gender: formData.get('gender'),
+                height: formData.get('height'),
+                weight: formData.get('weight'),
                 equipment: formData.get('equipment'),
                 style: formData.get('trainingStyle'),
                 limitations: formData.get('limitations'),
                 diet: formData.get('dietPreference') || 'No preference'
             };
 
-            // Show loader and hide form
             planGeneratorSection.classList.add('hidden');
             planOutputSection.classList.remove('hidden');
             planOutputSection.scrollIntoView({ behavior: 'smooth' });
 
             try {
-                // Construct the prompt for the Gemini API
                 const prompt = `
-You are a certified strength and conditioning coach and a registered dietitian. Your task is to generate a comprehensive, science-based weekly workout and nutrition plan.
-
-The entire output must be a single, valid JSON object with no explanatory text before or after it.
+You are a world-class certified strength and conditioning coach and a registered dietitian. Your task is to generate a comprehensive, science-based weekly workout and nutrition plan. The entire output must be a single, valid JSON object with no explanatory text before or after it.
 
 -------------------
 ✅ JSON OUTPUT STRUCTURE:
 {
-  "plan": [
-    {
-      "day": "Day 1",
-      "focus": "Upper Body",
-      "exercises": [
-        {
-          "name": "Incline Dumbbell Press",
-          "sets": 4,
-          "reps": 6,
-          "rest_seconds": 120,
-          "notes": "Focus on controlled tempo."
-        }
-      ]
-    }
-  ],
-  "summary": {
-    "goal": "Fat Loss",
-    "style": "Upper/Lower",
-    "days_per_week": 4
-  },
-  "rationale": "A brief explanation of why this workout structure was chosen for the user's goal.",
+  "plan": [{
+    "day": "Day 1", "focus": "Upper Body", "exercises": [
+      {"name": "Incline Dumbbell Press", "sets": 4, "reps": 6, "rest_seconds": 120, "notes": "Focus on controlled tempo.", "youtube_search_query": "how to do incline dumbbell press", "instructions": ["Step 1...", "Step 2..."]}
+    ]
+  }],
+  "rationale": "A brief explanation of why this workout structure was chosen.",
   "nutrition": {
-    "target_calories": 2200,
-    "target_protein_grams": 150,
+    "target_calories": 2200, "target_protein_grams": 150,
     "meal_ideas": {
-      "breakfast": ["Scrambled eggs with spinach and whole-wheat toast.", "Greek yogurt with berries and nuts."],
-      "lunch": ["Grilled chicken salad with mixed greens and vinaigrette.", "Quinoa bowl with black beans, corn, and avocado."],
-      "dinner": ["Baked salmon with roasted broccoli and sweet potato.", "Lean beef stir-fry with mixed vegetables and brown rice."],
+      "breakfast": ["Scrambled eggs with spinach.", "Greek yogurt with berries."],
+      "lunch": ["Grilled chicken salad.", "Quinoa bowl with black beans."],
+      "dinner": ["Baked salmon with broccoli.", "Lean beef stir-fry."],
       "snacks": ["Apple with peanut butter.", "Protein shake."]
     }
   }
@@ -516,56 +540,37 @@ The entire output must be a single, valid JSON object with no explanatory text b
 -------------------
 
 ✅ PROGRAMMING RULES:
-
-1.  **Workout Plan:**
-    * Match the number of training days to the "days_per_week" input.
-    * For each exercise, provide "name", "sets", "reps", "rest_seconds", and "notes".
-    * Match the training style (Upper/Lower, PPL, etc.) and goal (Fat Loss, Muscle Gain) with appropriate exercises, rep ranges, and rest periods.
-    * Prioritize compound lifts.
-    * Only suggest exercises possible with the user's available "equipment".
-    * Respect the user's "notes" regarding injuries.
-
-2.  **Rationale:**
-    * Write a short, encouraging paragraph in the "rationale" field explaining the logic behind the plan's structure.
-
-3.  **Nutrition Plan:**
-    * If the user selected a "dietPreference", you MUST generate the "nutrition" object. If their preference is "No preference", you can omit the "nutrition" object.
-    * Calculate a realistic "target_calories" and "target_protein_grams" based on their goal (e.g., slight calorie deficit for fat loss, slight surplus for muscle gain).
-    * Provide 2-3 "meal_ideas" for breakfast, lunch, dinner, and snacks.
-    * The meal ideas MUST align with the user's "dietPreference" (Standard, Vegetarian, or Vegan).
+1.  **Workout Plan:** For each exercise, you MUST include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
+2.  **Rationale:** Write a short, encouraging paragraph in the "rationale" field explaining the logic behind the plan's structure.
+3.  **Nutrition Plan:** If the user provides a "dietPreference" other than "No preference", you MUST generate the "nutrition" object. Calculate realistic "target_calories" and "target_protein_grams" based on their goal, gender, height, and weight. Provide 2-3 "meal_ideas" for breakfast, lunch, dinner, and snacks that align with the "dietPreference".
 
 -------------------
 
 ✅ INPUT VARIABLES TO CONSIDER:
-The following will be dynamically injected:
 - days_per_week: ${data.days}
 - goal: "${data.goal}"
+- gender: "${data.gender}"
+- height_cm: ${data.height}
+- weight_kg": ${data.weight}
 - equipment: ["${data.equipment}"]
 - style: "${data.style || 'Not specified, choose best fit'}"
 - notes: "${data.limitations || 'None'}"
 - dietPreference: "${data.diet}"
 `;
 
-                // Make the API call
                 let resultText = await callGeminiAPI(prompt);
-
-                // Clean the response
                 const startIndex = resultText.indexOf('{');
                 const endIndex = resultText.lastIndexOf('}');
                 if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
                     resultText = resultText.substring(startIndex, endIndex + 1);
                 }
-
-                // Process and display the result
                 const resultJson = JSON.parse(resultText);
                 currentPlanData = resultJson;
                 displayPlan(resultJson);
-
             } catch (error) {
                 console.error("Error generating plan:", error);
                 resultsContainer.innerHTML = `<p class="text-center text-red-400">Sorry, we couldn't generate your plan. The AI response was not in the correct format. Please try again.</p>`;
             } finally {
-                // Hide loader and show results
                 loaderContainer.classList.add('hidden');
                 resultsContainer.classList.remove('hidden');
             }
@@ -578,51 +583,30 @@ The following will be dynamically injected:
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: prompt })
             });
-
-            if (!response.ok) {
-                throw new Error(`Function call failed with status: ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`Function call failed with status: ${response.status}`);
             const result = await response.json();
-            
-            if (result.candidates && result.candidates.length > 0) {
-                return result.candidates[0].content.parts[0].text;
-            } else {
-                throw new Error("Failed to parse the plan from the API response.");
-            }
+            if (result.candidates && result.candidates.length > 0) return result.candidates[0].content.parts[0].text;
+            throw new Error("Failed to parse the plan from the API response.");
         }
         
         async function swapExercise(dayIndex, exIndex, buttonElement) {
             const originalButtonContent = buttonElement.innerHTML;
             buttonElement.innerHTML = `<div class="swap-loader"></div>`;
             buttonElement.disabled = true;
-
             try {
                 const exerciseToSwap = currentPlanData.plan[dayIndex].exercises[exIndex];
                 const formData = new FormData(form);
                 const equipment = formData.get('equipment');
-
-                const swapPrompt = `
-                Provide a single suitable alternative exercise for "${exerciseToSwap.name}".
-                The user has access to a "${equipment}".
-                Return a single valid JSON object for the new exercise, with no explanation. The JSON object must have the exact same structure as the original: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "..." }.
-                Original exercise for context: ${JSON.stringify(exerciseToSwap)}
-                `;
-
+                const swapPrompt = `Provide a single suitable alternative exercise for "${exerciseToSwap.name}". The user has access to a "${equipment}". Return a single valid JSON object for the new exercise, with no explanation. The JSON object must have the exact same structure as the original: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "...", "youtube_search_query": "...", "instructions": ["..."] }. Original exercise for context: ${JSON.stringify(exerciseToSwap)}`;
                 let resultText = await callGeminiAPI(swapPrompt);
-
                 const startIndex = resultText.indexOf('{');
                 const endIndex = resultText.lastIndexOf('}');
                 if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
                     resultText = resultText.substring(startIndex, endIndex + 1);
                 }
-
                 const newExercise = JSON.parse(resultText);
-                
-                // Update the plan data and re-render
                 currentPlanData.plan[dayIndex].exercises[exIndex] = newExercise;
                 displayPlan(currentPlanData);
-
             } catch (error) {
                 console.error("Error swapping exercise:", error);
                 alert("Could not swap the exercise. Please try again.");
@@ -634,93 +618,63 @@ The following will be dynamically injected:
 
         // --- UI Display ---
         function displayPlan(data) {
-            const { plan, summary, rationale, nutrition } = data;
-            
-            // Clear previous content
+            const { plan, rationale, nutrition } = data;
             planDetailsContainer.innerHTML = '';
             nutritionSection.innerHTML = '';
 
-            // Display Rationale
             if (rationale) {
-                 const rationaleHtml = `
-                    <div class="col-span-full mb-8 bg-blue-900/50 border border-blue-500 rounded-xl p-6">
-                        <h3 class="text-2xl font-bold text-white mb-3">Why This Workout?</h3>
-                        <p class="text-gray-300">${rationale}</p>
-                    </div>
-                `;
-                planDetailsContainer.innerHTML += rationaleHtml;
+                planDetailsContainer.innerHTML += `<div class="col-span-full mb-8 bg-blue-900/50 border border-blue-500 rounded-xl p-6"><h3 class="text-2xl font-bold text-white mb-3">Why This Workout?</h3><p class="text-gray-300">${rationale}</p></div>`;
             }
 
-            // Display daily plan cards
             plan.forEach((day, dayIndex) => {
                 const exercisesHtml = day.exercises.map((ex, exIndex) => `
-                    <li class="py-3 border-b border-gray-700">
+                    <li class="py-3 border-b border-gray-700 last:border-b-0">
                         <div class="flex justify-between items-center gap-2">
-                            <p class="font-semibold text-white">${ex.name}</p>
-                            <div class="flex items-center gap-4">
+                            <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal">(view instructions)</button></span>
+                            <div class="flex items-center gap-4 flex-shrink-0">
                                <p class="text-blue-400 font-semibold text-right whitespace-nowrap">${ex.sets} x ${ex.reps} reps</p>
                                <button onclick="swapExercise(${dayIndex}, ${exIndex}, this)" class="text-xs bg-gray-600 hover:bg-gray-500 rounded-full px-2 py-1 transition">Swap</button>
                             </div>
                         </div>
                         <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
-                    </li>
-                `).join('');
-
-                const dayCard = `
-                    <div class="plan-card bg-[#1f2937] border border-gray-700 rounded-xl p-6 flex flex-col">
-                        <h4 class="text-xl font-bold text-blue-400">${day.day}</h4>
-                        <h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5>
-                        <ul class="space-y-2 flex-grow">
-                            ${exercisesHtml}
-                        </ul>
-                    </div>
-                `;
-                planDetailsContainer.innerHTML += dayCard;
+                    </li>`).join('');
+                planDetailsContainer.innerHTML += `<div class="plan-card"><h4 class="text-xl font-bold text-blue-400">${day.day}</h4><h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
             });
 
-            // Display Nutrition Section
             if (nutrition) {
                 const mealIdeasHtml = Object.entries(nutrition.meal_ideas).map(([mealType, ideas]) => `
-                    <div>
+                    <div class="bg-gray-800 p-4 rounded-lg">
                         <h4 class="font-semibold capitalize text-white">${mealType}</h4>
-                        <ul class="list-disc list-inside text-gray-400 mt-1">
+                        <ul class="list-disc list-inside text-gray-400 mt-1 space-y-1">
                             ${ideas.map(idea => `<li>${idea}</li>`).join('')}
                         </ul>
-                    </div>
-                `).join('');
-
-                const nutritionHtml = `
-                    <div class="nutrition-card mt-12">
-                        <h3 class="text-3xl font-bold text-center text-white mb-4">AI Nutrition Guidance</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center mb-8">
-                            <div class="bg-gray-800 p-4 rounded-lg">
-                                <p class="text-sm text-gray-400">Target Calories</p>
-                                <p class="text-2xl font-bold text-blue-400">${nutrition.target_calories} kcal</p>
-                            </div>
-                             <div class="bg-gray-800 p-4 rounded-lg">
-                                <p class="text-sm text-gray-400">Target Protein</p>
-                                <p class="text-2xl font-bold text-blue-400">${nutrition.target_protein_grams}g</p>
-                            </div>
-                        </div>
-                        <h4 class="text-xl font-semibold text-white mb-4 text-center">Sample Meal Ideas</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                            ${mealIdeasHtml}
-                        </div>
-                    </div>
-                `;
-                nutritionSection.innerHTML = nutritionHtml;
+                    </div>`).join('');
+                nutritionSection.innerHTML = `
+                    <div class="nutrition-card mt-12"><h3 class="text-3xl font-bold text-center text-white mb-6">AI Nutrition Guidance</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center mb-8"><div class="bg-gray-800 p-6 rounded-xl"><p class="text-lg text-gray-400">Target Calories</p><p class="text-4xl font-bold text-blue-400">${nutrition.target_calories} kcal</p></div><div class="bg-gray-800 p-6 rounded-xl"><p class="text-lg text-gray-400">Target Protein</p><p class="text-4xl font-bold text-blue-400">${nutrition.target_protein_grams}g</p></div></div><h4 class="text-2xl font-semibold text-white mb-4 text-center">Sample Meal Ideas</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">${mealIdeasHtml}</div></div>`;
             }
         }
         
+        // --- Modal Functions ---
+        function openExerciseModal(dayIndex, exIndex) {
+            if (!currentPlanData) return;
+            const exercise = currentPlanData.plan[dayIndex].exercises[exIndex];
+            modalTitle.textContent = exercise.name;
+            const videoQuery = encodeURIComponent(exercise.youtube_search_query);
+            modalVideo.src = `https://www.youtube.com/embed?listType=search&list=${videoQuery}`;
+            youtubeLink.href = `https://www.youtube.com/results?search_query=${videoQuery}`;
+            modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
+            exerciseModal.classList.remove('modal-hidden');
+        }
+
+        function closeExerciseModal() {
+            exerciseModal.classList.add('modal-hidden');
+            modalVideo.src = '';
+        }
+
         // --- Utility Functions ---
         function downloadPDF() {
-            if (!currentPlanData) {
-                alert("Please generate a plan first!");
-                return;
-            }
-            // This function would need to be updated to include the new data fields for a complete PDF.
-            // For now, it will download the original plan data.
-            alert("PDF download for the new features is coming soon!");
+            if (!currentPlanData) return alert("Please generate a plan first!");
+            alert("The custom PDF download is being upgraded to include all the new features. It will be back soon!");
         }
 
     </script>
