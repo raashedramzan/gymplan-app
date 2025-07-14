@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymPlan - Your Personalized Workout Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #e5e5e5;
+        }
+        .hero-bg {
+            background: linear-gradient(rgba(10, 10, 10, 0.8), rgba(10, 10, 10, 1)), url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=2575&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center/cover;
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* Electric Blue */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: scale(1.05);
+        }
+        .btn-secondary {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #374151;
+            transform: scale(1.05);
+        }
+        .form-step {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .form-step.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .feature-card, .plan-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover, .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1);
+        }
+        .progress-bar-inner {
+            transition: width 0.5s ease-in-out;
+        }
+        .loader {
+            border: 4px solid #374151;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        input[type="radio"]:checked + label, input[type="checkbox"]:checked + label {
+            border-color: #3b82f6;
+            background-color: #3b82f620;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="absolute top-0 left-0 right-0 z-10 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">Gym<span class="text-blue-500">Plan</span></h1>
+            <button onclick="scrollToForm()" class="hidden md:inline-block px-6 py-2 font-semibold text-white rounded-lg btn-primary">Build Your Plan</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="hero-bg min-h-screen flex items-center justify-center text-center p-4">
+            <div class="max-w-3xl">
+                <h2 class="text-4xl md:text-6xl font-black text-white leading-tight mb-4">Stop Guessing. Start Training.</h2>
+                <p class="text-lg md:text-xl text-gray-300 mb-8">Get a science-backed, personalized workout plan in seconds. Tailored to your goals, schedule, and equipment.</p>
+                <button onclick="scrollToForm()" class="px-10 py-4 text-lg font-bold text-white rounded-lg btn-primary">Build Your Plan Now</button>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-black">
+            <div class="container mx-auto px-4 text-center">
+                <h3 class="text-3xl font-bold mb-2">How It Works</h3>
+                <p class="text-gray-400 mb-12 max-w-2xl mx-auto">Create your perfect workout plan in three simple steps.</p>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="feature-card">
+                        <div class="text-blue-500 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">1. Tell Us About You</h4>
+                        <p class="text-gray-400">Fill out a quick form about your goals, schedule, and what equipment you have.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="text-blue-500 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 6V3m0 18v-3m6-6h3m-3 6h3M9 6h6M9 18h6" /></svg>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">2. AI-Powered Generation</h4>
+                        <p class="text-gray-400">Our AI analyzes your inputs to craft a unique, effective workout plan just for you.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="text-blue-500 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">3. Train & Track</h4>
+                        <p class="text-gray-400">Receive your plan instantly. Download, print, or start your first workout today.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Plan Generator Form Section -->
+        <section id="plan-generator" class="py-20">
+            <div class="container mx-auto px-4">
+                <div class="max-w-2xl mx-auto bg-[#18181b] p-8 rounded-2xl shadow-2xl">
+                    <h2 class="text-3xl font-bold text-center mb-2">Create Your Plan</h2>
+                    <p class="text-gray-400 text-center mb-8">Let's build the perfect workout routine for you.</p>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-700 rounded-full h-2.5 mb-8">
+                        <div id="progress-bar" class="bg-blue-500 h-2.5 rounded-full progress-bar-inner" style="width: 25%"></div>
+                    </div>
+
+                    <form id="gymPlanForm">
+                        <!-- Step 1: Days & Goal -->
+                        <div id="step-1" class="form-step active">
+                            <div class="mb-6">
+                                <label class="block text-lg font-medium mb-3">How many days per week can you train?</label>
+                                <div id="trainingDaysContainer" class="grid grid-cols-3 sm:grid-cols-7 gap-2">
+                                    <!-- Dynamic content will be injected here -->
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-lg font-medium mb-3">What type of plan do you want?</label>
+                                <div id="mainGoalContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <!-- Main goal options injected here -->
+                                </div>
+                            </div>
+                             <div id="subGoalContainer" class="mb-6 mt-4 hidden">
+                                <label class="block text-lg font-medium mb-3">Select a style:</label>
+                                <div id="subGoalOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <!-- Sub-goal options injected here -->
+                                </div>
+                            </div>
+                            <button type="button" onclick="nextStep(2)" class="w-full px-6 py-3 font-semibold text-white rounded-lg btn-primary">Next</button>
+                        </div>
+
+                        <!-- Step 2: Equipment -->
+                        <div id="step-2" class="form-step">
+                            <label class="block text-lg font-medium mb-3">What equipment do you have access to?</label>
+                            <div id="equipmentContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                                <!-- Dynamic content will be injected here -->
+                            </div>
+                             <div class="flex justify-between">
+                                <button type="button" onclick="prevStep(1)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
+                                <button type="button" onclick="nextStep(3)" class="px-6 py-3 font-semibold text-white rounded-lg btn-primary">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Style & Limitations -->
+                        <div id="step-3" class="form-step">
+                            <div class="mb-6">
+                                <label for="trainingStyle" class="block text-lg font-medium mb-3">Preferred training split (optional)</label>
+                                <select id="trainingStyle" name="trainingStyle" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">No Preference</option>
+                                    <option value="Push/Pull/Legs">Push/Pull/Legs</option>
+                                    <option value="Upper/Lower">Upper/Lower</option>
+                                    <option value="Full Body">Full Body</option>
+                                    <option value="Body Part Split">Body Part Split</option>
+                                </select>
+                            </div>
+                            <div class="mb-6">
+                                <label for="limitations" class="block text-lg font-medium mb-3">Any injuries or limitations? (optional)</label>
+                                <textarea id="limitations" name="limitations" rows="4" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 'Bad lower back, avoid heavy deadlifts'"></textarea>
+                            </div>
+                            <div class="flex justify-between">
+                                <button type="button" onclick="prevStep(2)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary">Back</button>
+                                <button type="submit" class="w-1/2 px-6 py-3 font-semibold text-white rounded-lg btn-primary">Generate Plan</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Plan Output Section -->
+        <section id="plan-output" class="hidden py-20 bg-black">
+            <div class="container mx-auto px-4">
+                <div id="loader-container" class="text-center">
+                    <div class="loader mx-auto"></div>
+                    <p class="text-xl font-semibold mt-4">Generating your personalized plan...</p>
+                    <p class="text-gray-400">Our AI is crafting the perfect workout for you.</p>
+                </div>
+
+                <div id="results-container" class="hidden">
+                    <div class="text-center mb-12">
+                         <h2 class="text-3xl md:text-4xl font-bold">Your Personalized Gym Plan</h2>
+                         <p class="text-gray-400 mt-2 max-w-2xl mx-auto">Here is your AI-generated workout plan. You can edit your inputs or download it.</p>
+                    </div>
+                   
+                    <div id="plan-details" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Plan cards will be injected here -->
+                    </div>
+
+                    <div class="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
+                        <button onclick="editInputs()" class="w-full sm:w-auto px-8 py-3 font-semibold text-white rounded-lg btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                            Edit Inputs
+                        </button>
+                        <button onclick="downloadPDF()" class="w-full sm:w-auto px-8 py-3 font-semibold text-white rounded-lg btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                            Download PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-center py-8">
+        <p class="text-gray-400">&copy; 2025 GymPlan. All Rights Reserved. Powered by AI.</p>
+    </footer>
+
+    <script>
+        // --- Form Data ---
+        const trainingDaysData = [1, 2, 3, 4, 5, 6, 7];
+        const mainGoalsData = ['Muscle Gain', 'Fat Loss'];
+        const subGoalsData = ['Science-Based', 'Intense'];
+        const equipmentData = ['Commercial Gym', 'Dumbbells at Home', 'Calisthenics'];
+
+        // --- State Management ---
+        let currentStep = 1;
+        const totalSteps = 3;
+
+        // --- DOM Elements ---
+        const progressBar = document.getElementById('progress-bar');
+        const form = document.getElementById('gymPlanForm');
+        const planGeneratorSection = document.getElementById('plan-generator');
+        const planOutputSection = document.getElementById('plan-output');
+        const loaderContainer = document.getElementById('loader-container');
+        const resultsContainer = document.getElementById('results-container');
+        const planDetailsContainer = document.getElementById('plan-details');
+        const trainingDaysContainer = document.getElementById('trainingDaysContainer');
+        const mainGoalContainer = document.getElementById('mainGoalContainer');
+        const subGoalContainer = document.getElementById('subGoalContainer');
+        const subGoalOptions = document.getElementById('subGoalOptions');
+        const equipmentContainer = document.getElementById('equipmentContainer');
+        
+        // --- Form Initialization ---
+        function initializeForm() {
+            // Populate Training Days
+            trainingDaysContainer.innerHTML = trainingDaysData.map(day => `
+                <div>
+                    <input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" required>
+                    <label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50 transition-all">
+                        ${day}
+                    </label>
+                </div>
+            `).join('');
+
+            // Populate Main Goals
+            mainGoalContainer.innerHTML = mainGoalsData.map(goal => `
+                <div>
+                    <input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required>
+                    <label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50 transition-all">
+                        ${goal}
+                    </label>
+                </div>
+            `).join('');
+            
+            // Populate Equipment
+            equipmentContainer.innerHTML = equipmentData.map(equip => `
+                <div>
+                    <input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required>
+                    <label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50 transition-all">
+                        ${equip}
+                    </label>
+                </div>
+            `).join('');
+        }
+        
+        // Run initialization on page load
+        document.addEventListener('DOMContentLoaded', initializeForm);
+
+        // --- Event Listeners ---
+        mainGoalContainer.addEventListener('change', (event) => {
+            if (event.target.name === 'mainGoal') {
+                subGoalContainer.classList.remove('hidden');
+                subGoalOptions.innerHTML = subGoalsData.map(subGoal => `
+                     <div>
+                        <input type="radio" id="subGoal-${subGoal.replace(/ /g, '')}" name="subGoal" value="${subGoal}" class="hidden peer" required>
+                        <label for="subGoal-${subGoal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50 transition-all">
+                            ${subGoal}
+                        </label>
+                    </div>
+                `).join('');
+            }
+        });
+
+        // --- Navigation ---
+        function scrollToForm() {
+            planGeneratorSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function nextStep(step) {
+            if (validateStep(currentStep)) {
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                currentStep = step;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                updateProgressBar();
+            }
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            currentStep = step;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const progress = (currentStep / totalSteps) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        function validateStep(step) {
+            const currentStepElement = document.getElementById(`step-${step}`);
+            const inputs = currentStepElement.querySelectorAll('[required]');
+            let isValid = true;
+            for (const input of inputs) {
+                if ((input.type === 'radio' || input.type === 'checkbox')) {
+                    const groupName = input.name;
+                    const groupContainer = input.closest('.mb-6');
+                    if (groupContainer && window.getComputedStyle(groupContainer).display === 'none') {
+                        continue; // Skip validation for hidden fields
+                    }
+                    if (!document.querySelector(`input[name="${groupName}"]:checked`)) {
+                        isValid = false;
+                        break;
+                    }
+                } else if (!input.value) {
+                    isValid = false;
+                    break;
+                }
+            }
+
+            if (!isValid) {
+                alert('Please fill out all required fields before proceeding.');
+            }
+            return isValid;
+        }
+
+        function editInputs() {
+            planOutputSection.classList.add('hidden');
+            planGeneratorSection.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+            loaderContainer.classList.remove('hidden');
+            planDetailsContainer.innerHTML = ''; // Clear previous results
+        }
+
+        // --- Form Submission & API Call ---
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Collect form data
+            const formData = new FormData(form);
+            const mainGoal = formData.get('mainGoal');
+            const subGoal = formData.get('subGoal');
+            const combinedGoal = `${subGoal} ${mainGoal}`; // e.g., "Intense Muscle Gain"
+
+            const data = {
+                days: formData.get('trainingDays'),
+                goal: combinedGoal,
+                equipment: formData.get('equipment'),
+                style: formData.get('trainingStyle'),
+                limitations: formData.get('limitations')
+            };
+
+            // Show loader and hide form
+            planGeneratorSection.classList.add('hidden');
+            planOutputSection.classList.remove('hidden');
+            planOutputSection.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                // Construct the prompt for the Gemini API
+                const prompt = `
+                    Create a detailed, personalized workout plan based on the following criteria.
+                    The output must be a JSON object. Do not include any text outside of the JSON object.
+                    The JSON object should have a single key "plan" which is an array of objects, where each object represents a workout day.
+                    Each day object must have three properties: "day" (e.g., "Day 1"), "focus" (e.g., "Upper Body Push"), and "exercises" which is an array of exercise objects.
+                    Each exercise object must have three properties: "name" (e.g., "Dumbbell Shoulder Press"), "sets" (e.g., "3x10"), and "alternative" (e.g., "Pike Pushups if no weights").
+                    Provide a well-rounded plan that logically follows the user's preferred training split if specified, or choose a suitable one if not.
+                    If "Calisthenics" is selected, ensure all exercises are bodyweight exercises and provide creative alternatives. If "Commercial Gym" is selected, feel free to use a mix of machines, free weights, and barbells. If "Dumbbells at Home" is selected, prioritize dumbbell exercises.
+                    Take into account the user's limitations.
+
+                    User Criteria:
+                    - Training Days per Week: ${data.days}
+                    - Primary Goal: ${data.goal}
+                    - Equipment Available: ${data.equipment}
+                    - Preferred Training Split: ${data.style || 'Not specified, choose the best fit.'}
+                    - Injuries or Limitations: ${data.limitations || 'None specified.'}
+                `;
+
+                // Make the API call
+                let resultText = await callGeminiAPI(prompt);
+
+                // --- FIX: Clean the response to ensure it's valid JSON ---
+                const startIndex = resultText.indexOf('{');
+                const endIndex = resultText.lastIndexOf('}');
+                if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+                    resultText = resultText.substring(startIndex, endIndex + 1);
+                }
+
+                // Process and display the result
+                const resultJson = JSON.parse(resultText);
+                displayPlan(resultJson.plan);
+
+            } catch (error) {
+                console.error("Error generating plan:", error);
+                resultsContainer.innerHTML = `<p class="text-center text-red-400">Sorry, we couldn't generate your plan. The AI response was not in the correct format. Please try again.</p>`;
+            } finally {
+                // Hide loader and show results
+                loaderContainer.classList.add('hidden');
+                resultsContainer.classList.remove('hidden');
+            }
+        });
+
+           async function callGeminiAPI(prompt) {
+            // The URL for our Vercel Function
+            const functionUrl = '/api/generate-plan';
+
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: prompt }) // Send the prompt in the body
+            });
+
+            if (!response.ok) {
+                throw new Error(`Function call failed with status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                // The function returns the full API response, so we extract the text part
+                return result.candidates[0].content.parts[0].text;
+            } else {
+                console.error("Unexpected API response structure from function:", result);
+                throw new Error("Failed to parse the plan from the API response.");
+            }
+        }
+
+
+
+        // --- UI Display ---
+        function displayPlan(plan) {
+            planDetailsContainer.innerHTML = ''; // Clear previous content
+            plan.forEach(day => {
+                const exercisesHtml = day.exercises.map(ex => `
+                    <li class="flex justify-between items-start py-3 border-b border-gray-700">
+                        <div>
+                            <p class="font-semibold">${ex.name}</p>
+                            <p class="text-sm text-gray-400">Alternative: ${ex.alternative}</p>
+                        </div>
+                        <p class="text-blue-400 font-semibold">${ex.sets}</p>
+                    </li>
+                `).join('');
+
+                const dayCard = `
+                    <div class="plan-card bg-[#1f2937] border border-gray-700 rounded-xl p-6 flex flex-col">
+                        <h4 class="text-xl font-bold text-blue-400">${day.day}</h4>
+                        <h5 class="text-lg font-semibold mb-4">${day.focus}</h5>
+                        <ul class="space-y-2 flex-grow">
+                            ${exercisesHtml}
+                        </ul>
+                    </div>
+                `;
+                planDetailsContainer.innerHTML += dayCard;
+            });
+        }
+        
+        // --- Utility Functions ---
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const resultsContent = document.getElementById('results-container');
+            const originalTitle = resultsContent.querySelector('h2').innerText;
+            resultsContent.querySelector('h2').innerText = "Your GymPlan"; // Shorter title for PDF
+
+            html2canvas(resultsContent, {
+                scale: 2, // Higher scale for better quality
+                backgroundColor: '#0a0a0a',
+                onclone: (document) => {
+                    // Ensure text is visible on the canvas
+                    document.querySelectorAll('*').forEach(el => el.style.color = '#e5e5e5');
+                    document.querySelector('h2').style.color = '#ffffff';
+                    document.querySelectorAll('.text-blue-400').forEach(el => el.style.color = '#60a5fa');
+                }
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save('GymPlan.pdf');
+
+                // Restore original title
+                resultsContent.querySelector('h2').innerText = originalTitle;
+            });
+        }
+
+    </script>
+</body>
+</html>
