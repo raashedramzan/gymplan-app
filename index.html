@@ -316,8 +316,11 @@
             <div class="p-6 flex-grow overflow-y-auto">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Video Player -->
-                    <div class="aspect-w-16 aspect-h-9">
-                        <iframe id="modalVideo" class="w-full h-full rounded-lg" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <div>
+                        <div class="aspect-w-16 aspect-h-9 bg-black rounded-lg">
+                            <iframe id="modalVideo" class="w-full h-full rounded-lg" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <a id="youtubeLink" href="#" target="_blank" class="block text-center text-sm text-blue-400 hover:underline mt-2">Watch on YouTube if video is unavailable</a>
                     </div>
                     <!-- Instructions -->
                     <div>
@@ -361,6 +364,7 @@
         const modalTitle = document.getElementById('modalTitle');
         const modalVideo = document.getElementById('modalVideo');
         const modalInstructions = document.getElementById('modalInstructions');
+        const youtubeLink = document.getElementById('youtubeLink');
         
         // --- Form Initialization ---
         function initializeForm() {
@@ -691,7 +695,7 @@ The following will be dynamically injected:
                 const exercisesHtml = day.exercises.map((ex, exIndex) => `
                     <li class="py-3 border-b border-gray-700">
                         <div class="flex justify-between items-center">
-                            <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="font-semibold text-white text-left hover:text-blue-400 transition">${ex.name}</button>
+                            <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1">(view instructions)</button></span>
                             <p class="text-blue-400 font-semibold text-right">${ex.sets} sets x ${ex.reps} reps</p>
                         </div>
                         <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
@@ -728,9 +732,10 @@ The following will be dynamically injected:
             
             modalTitle.textContent = exercise.name;
             
-            // Construct YouTube embed URL
+            // Construct YouTube embed and search URLs
             const videoQuery = encodeURIComponent(exercise.youtube_search_query);
             modalVideo.src = `https://www.youtube.com/embed?listType=search&list=${videoQuery}`;
+            youtubeLink.href = `https://www.youtube.com/results?search_query=${videoQuery}`;
             
             // Populate instructions
             modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
