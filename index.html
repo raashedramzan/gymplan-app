@@ -907,25 +907,41 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                 pdfNutritionSection.innerHTML = ''; // Clear if no nutrition data
             }
 
-            // Make the template visible but off-screen for rendering
-            pdfTemplate.classList.remove('hidden');
-            pdfTemplate.style.position = 'absolute';
-            pdfTemplate.style.left = '-9999px';
-            pdfTemplate.style.top = '-9999px';
-            pdfTemplate.style.width = '210mm'; // A4 width
-            pdfTemplate.style.minHeight = '297mm'; // A4 height
-            pdfTemplate.style.padding = '20mm'; // Add some padding for the PDF margins
+            // Create a temporary container for the PDF template to ensure it's rendered in the DOM
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '0';
+            tempDiv.style.top = '0';
+            tempDiv.style.width = '210mm'; // Ensure tempDiv also respects A4 width
+            tempDiv.style.minHeight = '297mm'; // Ensure tempDiv also respects A4 height
+            tempDiv.style.opacity = '0'; // Make it invisible
+            tempDiv.style.overflow = 'hidden'; // Hide overflow
+            tempDiv.style.zIndex = '-1'; // Place it behind everything
+            
+            // Append the pdf-template to the temporary div
+            tempDiv.appendChild(pdfTemplate);
+            // Append the temporary div to the body
+            document.body.appendChild(tempDiv);
 
+            // Ensure the template is not hidden by its class
+            // And reset any conflicting inline styles that might have been set previously
+            pdfTemplate.classList.remove('hidden');
+            pdfTemplate.style.position = '';
+            pdfTemplate.style.left = '';
+            pdfTemplate.style.top = '';
+            // The 'p-8' class on pdf-template already provides padding, no need to set inline style here.
+
+            // Get the actual rendered width of the pdfTemplate for html2canvas
+            // This ensures html2canvas renders based on the actual pixel width of the A4 template
+            const templateRenderedWidth = pdfTemplate.offsetWidth;
 
             // Use html2canvas and jspdf.html() for better rendering
             await doc.html(pdfTemplate, {
                 callback: function (doc) {
                     doc.save('GymPlan.pdf');
-                    // Hide the template again after generation
+                    // Clean up: hide the template and remove the temporary div
                     pdfTemplate.classList.add('hidden');
-                    pdfTemplate.style.position = '';
-                    pdfTemplate.style.left = '';
-                    pdfTemplate.style.top = '';
+                    tempDiv.remove(); // Remove the temporary div from the body
 
                     // Restore button state
                     downloadPdfButton.innerHTML = originalButtonContent;
@@ -936,13 +952,11 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                 html2canvas: {
                     scale: 0.75, // Adjust scale for better quality/fit on A4
                     logging: true,
-                    useCORS: true // Important for images
+                    useCORS: true, // Important for images
+                    width: templateRenderedWidth // Use the dynamically obtained width
                 },
                 margin: [10, 10, 10, 10], // Top, Right, Bottom, Left margins in mm
                 autoPaging: 'text', // Automatically paginate based on text flow
-                // Add a footer with page numbers
-                // This is a more advanced option, for simplicity, we'll let autoPaging handle content flow
-                // If custom headers/footers are needed, it's more complex with doc.html()
             });
         }
 
