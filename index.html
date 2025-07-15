@@ -134,67 +134,67 @@
 
         /* PDF Specific Styles for better compactness */
         #pdf-template {
-            font-size: 9pt; /* Overall smaller base font size */
+            font-size: 8pt; /* Overall smaller base font size */
         }
         #pdf-template h1 {
-            font-size: 18pt; /* Smaller header */
+            font-size: 16pt; /* Smaller header */
         }
         #pdf-template h2 {
-            font-size: 14pt; /* Smaller section titles */
+            font-size: 12pt; /* Smaller section titles */
         }
         #pdf-template h3 {
-            font-size: 12pt; /* Smaller sub-titles */
+            font-size: 10pt; /* Smaller sub-titles */
         }
         #pdf-template .text-sm {
-            font-size: 8pt; /* Smaller small text */
+            font-size: 7pt; /* Smaller small text */
         }
         #pdf-template .text-xs {
-            font-size: 7pt; /* Even smaller extra small text */
+            font-size: 6pt; /* Even smaller extra small text */
         }
         #pdf-template .text-2xl {
-            font-size: 16pt; /* Adjust nutrition numbers */
+            font-size: 14pt; /* Adjust nutrition numbers */
         }
         #pdf-template .text-4xl {
-            font-size: 20pt; /* Adjust nutrition numbers */
+            font-size: 18pt; /* Adjust nutrition numbers */
         }
         #pdf-template .space-y-2 > li {
-            margin-bottom: 0.15rem; /* Reduce space between list items */
+            margin-bottom: 0.1rem; /* Reduce space between list items */
         }
         #pdf-template .space-y-1 > li {
-            margin-bottom: 0.1rem; /* Further reduce space for exercises */
+            margin-bottom: 0.05rem; /* Further reduce space for exercises */
         }
         #pdf-template .p-4 {
-            padding: 0.5rem; /* Reduce padding */
+            padding: 0.4rem; /* Reduce padding */
         }
         #pdf-template .p-3 {
-            padding: 0.4rem; /* Reduce padding for exercise blocks */
+            padding: 0.3rem; /* Reduce padding for exercise blocks */
         }
         #pdf-template .mb-2 {
-            margin-bottom: 0.2rem; /* Reduce margin bottom */
+            margin-bottom: 0.15rem; /* Reduce margin bottom */
         }
         #pdf-template .mb-3 {
-            margin-bottom: 0.4rem; /* Reduce margin bottom */
+            margin-bottom: 0.3rem; /* Reduce margin bottom */
         }
         #pdf-template .mb-6 {
-            margin-bottom: 0.8rem; /* Reduce margin bottom */
+            margin-bottom: 0.6rem; /* Reduce margin bottom */
         }
         #pdf-template .pb-4 {
-            padding-bottom: 0.4rem; /* Reduce padding bottom */
+            padding-bottom: 0.3rem; /* Reduce padding bottom */
         }
         #pdf-template .mt-1 {
-            margin-top: 0.2rem; /* Reduce margin top */
+            margin-top: 0.15rem; /* Reduce margin top */
         }
         #pdf-template .mt-3 {
-            margin-top: 0.4rem; /* Reduce margin top */
+            margin-top: 0.3rem; /* Reduce margin top */
         }
         #pdf-template .mt-4 {
-            margin-top: 0.6rem; /* Reduce margin top */
+            margin-top: 0.5rem; /* Reduce margin top */
         }
         #pdf-template .mt-10 {
-            margin-top: 1.2rem; /* Reduce margin top */
+            margin-top: 1rem; /* Reduce margin top */
         }
         #pdf-template .ml-2 {
-            margin-left: 0.4rem; /* Reduce left margin for bullet points */
+            margin-left: 0.3rem; /* Reduce left margin for bullet points */
         }
         .page-break-after {
             page-break-after: always;
@@ -1031,12 +1031,12 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                 x: 0,
                 y: 0,
                 html2canvas: {
-                    scale: 1.8, // Further increased scale for more content per page
+                    scale: 2.5, // Further increased scale for more content per page
                     logging: true,
                     useCORS: true, // Important for images
                     width: templateRenderedWidth // Use the dynamically obtained width
                 },
-                margin: [10, 10, 10, 10], // Top, Right, Bottom, Left margins in mm
+                margin: [5, 5, 5, 5], // Reduced margins
                 autoPaging: 'text', // Automatically paginate based on text flow
             });
         }
