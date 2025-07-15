@@ -131,82 +131,6 @@
             opacity: 0;
             transform: scale(0.95);
         }
-
-        /* PDF Specific Styles for better compactness */
-        #pdf-template {
-            font-size: 7pt; /* Overall smaller base font size */
-            line-height: 1.2; /* Tighter line spacing */
-        }
-        #pdf-template h1 {
-            font-size: 14pt; /* Smaller header */
-        }
-        #pdf-template h2 {
-            font-size: 11pt; /* Smaller section titles */
-        }
-        #pdf-template h3 {
-            font-size: 9pt; /* Smaller sub-titles */
-        }
-        #pdf-template .text-sm {
-            font-size: 6.5pt; /* Smaller small text */
-        }
-        #pdf-template .text-xs {
-            font-size: 5.5pt; /* Even smaller extra small text */
-        }
-        #pdf-template .text-2xl {
-            font-size: 12pt; /* Adjust nutrition numbers */
-        }
-        #pdf-template .text-4xl {
-            font-size: 16pt; /* Adjust nutrition numbers */
-        }
-        #pdf-template .space-y-2 > li {
-            margin-bottom: 0.05rem; /* Reduce space between list items */
-        }
-        #pdf-template .space-y-1 > li {
-            margin-bottom: 0.025rem; /* Further reduce space for exercises */
-        }
-        #pdf-template .p-4 {
-            padding: 0.3rem; /* Reduce padding */
-        }
-        #pdf-template .p-3 {
-            padding: 0.25rem; /* Reduce padding for exercise blocks */
-        }
-        #pdf-template .mb-2 {
-            margin-bottom: 0.1rem; /* Reduce margin bottom */
-        }
-        #pdf-template .mb-3 {
-            margin-bottom: 0.2rem; /* Reduce margin bottom */
-        }
-        #pdf-template .mb-6 {
-            margin-bottom: 0.4rem; /* Reduce margin bottom */
-        }
-        #pdf-template .pb-4 {
-            padding-bottom: 0.25rem; /* Reduce padding bottom */
-        }
-        #pdf-template .mt-1 {
-            margin-top: 0.1rem; /* Reduce margin top */
-        }
-        #pdf-template .mt-3 {
-            margin-top: 0.2rem; /* Reduce margin top */
-        }
-        #pdf-template .mt-4 {
-            margin-top: 0.3rem; /* Reduce margin top */
-        }
-        #pdf-template .mt-10 {
-            margin-top: 0.8rem; /* Reduce margin top */
-        }
-        #pdf-template .ml-2 {
-            margin-left: 0.25rem; /* Reduce left margin for bullet points */
-        }
-        .page-break-after {
-            page-break-after: always;
-        }
-        .page-break-before {
-            page-break-before: always;
-        }
-        .page-break-inside-avoid {
-            page-break-inside: avoid;
-        }
-
     </style>
 
         <!-- Preconnect to speed up font loading -->
@@ -413,57 +337,36 @@
     </main>
 
     <!-- ─── PDF TEMPLATE (hidden) ─── -->
-    <div id="pdf-template" class="hidden p-8 bg-white text-gray-900 font-sans w-[210mm] min-h-[297mm] mx-auto">
+    <div id="pdf-template" class="hidden p-8 bg-white text-gray-900 font-sans">
       <!-- Header -->
-      <header class="flex items-center mb-6 border-b pb-4 border-gray-300">
+      <header class="flex items-center mb-6 border-b pb-4">
         <img src="logo.png.png" alt="GymPlan.fit Logo" class="h-12 mr-4">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Gym<span class="text-blue-600">Plan</span>.fit</h1>
-          <p class="text-sm text-gray-600 mt-1">Generated Training & Meal Plan</p>
-          <p class="text-xs text-gray-500">Date: <span id="pdf-date"></span></p>
+          <h1 class="text-2xl font-bold">Gym<span class="text-blue-500">Plan</span>.fit</h1>
+          <p class="text-sm text-gray-600">Generated: <span id="pdf-date"></span></p>
         </div>
       </header>
 
-      <!-- Workout Summary -->
-      <section class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 page-break-after">
-        <h2 class="text-xl font-bold mb-3 text-gray-800">Plan Summary</h2>
-        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
-            <div><strong>Goal:</strong> <span id="pdf-summary-goal"></span></div>
-            <div><strong>Days per Week:</strong> <span id="pdf-summary-days"></span></div>
-            <div><strong>Training Style:</strong> <span id="pdf-summary-style"></span></div>
-            <div><strong>Equipment:</strong> <span id="pdf-summary-equipment"></span></div>
-            <div class="col-span-2"><strong>User Profile:</strong> <span id="pdf-user-profile"></span></div>
-        </div>
-        <p class="text-sm text-gray-700 mt-3"><strong>Adjustments:</strong> <span id="pdf-summary-adjustments"></span></p>
+      <!-- Workout Days -->
+      <section class="space-y-8">
+        <!-- Repeat this block for each day -->
+        <article class="page-break-inside-avoid">
+          <h2 class="text-xl font-semibold mb-3">Day 1: Push (Chest, Shoulders, Triceps)</h2>
+          <ul class="space-y-2">
+            <li>
+              <strong>Dumbbell Bench Press</strong> – 3×8 @ 75s rest
+              <p class="text-sm text-gray-600 italic">Focus on controlled movement.</p>
+            </li>
+            <!-- …other exercises -->
+          </ul>
+        </article>
+        <!-- /Repeat -->
       </section>
 
-      <!-- Workout Days Container -->
-      <section id="pdf-workout-days" class="space-y-6">
-        <!-- Day blocks will be injected here -->
-      </section>
-
-      <!-- Nutrition Section Container -->
-      <section id="pdf-nutrition-section" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 page-break-before">
-        <h3 class="text-xl font-bold text-gray-800 mb-3">Daily Nutrition Summary</h3>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
-            <div class="bg-white p-3 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-600">Calories</p>
-                <p class="text-2xl font-bold text-blue-600"><span id="pdf-calories"></span> kcal</p>
-            </div>
-            <div class="bg-white p-3 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-600">Protein</p>
-                <p class="text-2xl font-bold text-blue-600"><span id="pdf-protein"></span>g</p>
-            </div>
-            <div class="bg-white p-3 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-600">Carbs</p>
-                <p class="text-2xl font-bold text-blue-600"><span id="pdf-carbs"></span>g</p>
-            </div>
-            <div class="bg-white p-3 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-600">Fats</p>
-                <p class="text-2xl font-bold text-blue-600"><span id="pdf-fats"></span>g</p>
-            </div>
-        </div>
-      </section>
+      <!-- Footer -->
+      <footer class="fixed bottom-0 left-0 w-full text-center text-xs text-gray-500 py-4">
+        <span class="pageNumber"></span> / <span class="totalPages"></span>
+      </footer>
     </div>
     <!-- ─── end PDF TEMPLATE ─── -->
     
@@ -544,21 +447,21 @@
         const youtubeLink = document.getElementById('youtubeLink');
         const downloadPdfButton = document.getElementById('downloadPdfButton'); // Get the download button
         
-        // PDF Template elements
-        const pdfTemplate = document.getElementById('pdf-template');
-        const pdfDate = document.getElementById('pdf-date');
-        const pdfSummaryGoal = document.getElementById('pdf-summary-goal');
-        const pdfSummaryDays = document.getElementById('pdf-summary-days');
-        const pdfSummaryStyle = document.getElementById('pdf-summary-style');
-        const pdfSummaryEquipment = document.getElementById('pdf-summary-equipment');
-        const pdfUserProfile = document.getElementById('pdf-user-profile');
-        const pdfSummaryAdjustments = document.getElementById('pdf-summary-adjustments');
-        const pdfWorkoutDays = document.getElementById('pdf-workout-days');
-        const pdfNutritionSection = document.getElementById('pdf-nutrition-section');
-        const pdfCalories = document.getElementById('pdf-calories');
-        const pdfProtein = document.getElementById('pdf-protein');
-        const pdfCarbs = document.getElementById('pdf-carbs');
-        const pdfFats = document.getElementById('pdf-fats');
+        // PDF Template elements - Removed as they are no longer used for direct HTML rendering in PDF
+        // const pdfTemplate = document.getElementById('pdf-template');
+        // const pdfDate = document.getElementById('pdf-date');
+        // const pdfSummaryGoal = document.getElementById('pdf-summary-goal');
+        // const pdfSummaryDays = document.getElementById('pdf-summary-days');
+        // const pdfSummaryStyle = document.getElementById('pdf-summary-style');
+        // const pdfSummaryEquipment = document.getElementById('pdf-summary-equipment');
+        // const pdfUserProfile = document.getElementById('pdf-user-profile');
+        // const pdfSummaryAdjustments = document.getElementById('pdf-summary-adjustments');
+        // const pdfWorkoutDays = document.getElementById('pdf-workout-days');
+        // const pdfNutritionSection = document.getElementById('pdf-nutrition-section');
+        // const pdfCalories = document.getElementById('pdf-calories');
+        // const pdfProtein = document.getElementById('pdf-protein');
+        // const pdfCarbs = document.getElementById('pdf-carbs');
+        // const pdfFats = document.getElementById('pdf-fats');
 
 
         // --- Form Initialization ---
@@ -922,124 +825,87 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
         }
 
         // --- Utility Functions ---
-        async function downloadPDF() {
+        function downloadPDF() {
             if (!currentPlanData) {
                 alert("Please generate a plan first!");
                 return;
             }
 
-            const originalButtonContent = downloadPdfButton.innerHTML;
-            downloadPdfButton.innerHTML = `<div class="swap-loader mr-2"></div> Generating...`; // Use swap-loader for consistency
-            downloadPdfButton.disabled = true;
-
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-            const { plan, summary, meals } = currentPlanData;
+            const { plan, meals } = currentPlanData;
 
-            // Populate PDF template
-            pdfDate.textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            pdfSummaryGoal.textContent = summary.goal;
-            pdfSummaryDays.textContent = summary.days_per_week;
-            pdfSummaryStyle.textContent = summary.style;
-            pdfSummaryEquipment.textContent = summary.equipment_used.join(', ');
-            pdfSummaryAdjustments.textContent = summary.adjustments.length > 0 ? summary.adjustments.join(', ') : 'None';
-            pdfUserProfile.textContent = `${summary.user_profile.sex}, ${summary.user_profile.age} years old, ${summary.user_profile.height_cm}cm, ${summary.user_profile.weight_kg}kg`;
+            let y = 20;
+            const pageMargin = 15;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const usableWidth = pageWidth - (pageMargin * 2);
 
-            // Populate workout days
-            pdfWorkoutDays.innerHTML = '';
-            plan.forEach((day, index) => {
-                const exercisesHtml = day.exercises.map(ex => `
-                    <li class="mb-1 pb-1 border-b border-gray-200 last:border-b-0">
-                        <strong class="text-gray-800">${ex.name}</strong> – ${ex.sets}x${ex.reps} @ ${ex.rest_seconds}s rest
-                        <p class="text-xs text-gray-600 italic mt-0.5">Notes: ${ex.notes || 'None'}</p>
-                        <ul class="list-disc list-inside text-xs text-gray-600 mt-0.5 ml-2">
-                            ${ex.instructions.map(inst => `<li>${inst}</li>`).join('')}
-                        </ul>
-                    </li>
-                `).join('');
+            // Header
+            doc.setFontSize(24);
+            doc.setFont("helvetica", "bold");
+            doc.text("GymPlan.fit", pageMargin, y);
+            y += 10;
 
-                pdfWorkoutDays.innerHTML += `
-                    <article class="p-3 bg-white rounded-lg shadow-sm border border-gray-200 mb-4 page-break-inside-avoid">
-                        <h3 class="text-lg font-bold text-blue-600 mb-1">${day.day}: ${day.focus}</h3>
-                        <ul class="space-y-1">
-                            ${exercisesHtml}
-                        </ul>
-                        ${day.cardio ? `
-                            <div class="mt-3 pt-3 border-t border-gray-200">
-                                <h4 class="text-md font-semibold text-gray-800">Cardio: ${day.cardio.type}</h4>
-                                <p class="text-sm text-gray-700">Duration: ${day.cardio.duration_minutes} min, Intensity: ${day.cardio.intensity}</p>
-                                <p class="text-sm text-gray-700">Timing: ${day.cardio.timing}</p>
-                                <p class="text-xs text-gray-600 italic">Notes: ${day.cardio.notes}</p>
-                            </div>
-                        ` : ''}
-                    </article>
-                    ${index < plan.length - 1 ? '<hr class="border-gray-300 my-6">' : ''} <!-- Light horizontal line between days -->
-                `;
+            // Daily Plans
+            plan.forEach(day => {
+                if (y > pageHeight - 40) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text(`${day.day}: ${day.focus}`, pageMargin, y);
+                y += 8;
+
+                day.exercises.forEach(ex => {
+                    const exerciseText = `${ex.name} - ${ex.sets} sets x ${ex.reps} reps, ${ex.rest_seconds}s rest.`;
+                    const notesText = `Notes: ${ex.notes || 'None'}`;
+                    const exerciseLines = doc.splitTextToSize(exerciseText, usableWidth);
+                    const notesLines = doc.splitTextToSize(notesText, usableWidth);
+
+                    if (y + (exerciseLines.length * 5) + (notesLines.length * 5) > pageHeight - 20) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(exerciseLines, pageMargin, y);
+                    y += (exerciseLines.length * 5);
+                    doc.setFontSize(9);
+                    doc.setFont("helvetica", "italic");
+                    doc.text(notesLines, pageMargin + 2, y);
+                    y += (notesLines.length * 5) + 3;
+                });
+                y += 7;
             });
 
-            // Populate nutrition
+            // Nutrition
             if (meals && meals.macros) {
-                const macros = meals.macros;
-                pdfCalories.textContent = macros.daily_calories || meals.daily_calories;
-                pdfProtein.textContent = macros.protein_g;
-                pdfCarbs.textContent = macros.carbs_g;
-                pdfFats.textContent = macros.fats_g;
-                pdfNutritionSection.classList.remove('hidden'); // Ensure nutrition section is visible if data exists
-            } else {
-                pdfNutritionSection.classList.add('hidden'); // Hide if no nutrition data
+                if (y > pageHeight - 40) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setDrawColor(200);
+                doc.line(pageMargin, y, pageWidth - pageMargin, y);
+                y += 10;
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.text("Nutrition Guidance", pageMargin, y);
+                y += 7;
+
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                doc.text(`Target Calories: ~${meals.macros.daily_calories || meals.daily_calories} kcal`, pageMargin, y);
+                y += 6;
+                doc.text(`Target Protein: ~${meals.macros.protein_g}g`, pageMargin, y);
+                y += 6;
+                doc.text(`Target Fats: ~${meals.macros.fats_g}g`, pageMargin, y);
+                y += 6;
+                doc.text(`Target Carbs: ~${meals.macros.carbs_g}g`, pageMargin, y);
             }
 
-            // Create a temporary container for the PDF template to ensure it's rendered in the DOM
-            const tempDiv = document.createElement('div');
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '0';
-            tempDiv.style.top = '0';
-            tempDiv.style.width = '210mm'; // Ensure tempDiv also respects A4 width
-            tempDiv.style.minHeight = '297mm'; // Ensure tempDiv also respects A4 height
-            tempDiv.style.opacity = '0'; // Make it invisible
-            tempDiv.style.overflow = 'hidden'; // Hide overflow
-            tempDiv.style.zIndex = '-1'; // Place it behind everything
-            
-            // Append the pdf-template to the temporary div
-            tempDiv.appendChild(pdfTemplate);
-            // Append the temporary div to the body
-            document.body.appendChild(tempDiv);
-
-            // Ensure the template is not hidden by its class
-            // And reset any conflicting inline styles that might have been set previously
-            pdfTemplate.classList.remove('hidden');
-            pdfTemplate.style.position = '';
-            pdfTemplate.style.left = '';
-            pdfTemplate.style.top = '';
-            // The 'p-8' class on pdf-template already provides padding, no need to set inline style here.
-
-            // Get the actual rendered width of the pdfTemplate for html2canvas
-            // This ensures html2canvas renders based on the actual pixel width of the A4 template
-            const templateRenderedWidth = pdfTemplate.offsetWidth;
-
-            // Use html2canvas and jspdf.html() for better rendering
-            await doc.html(pdfTemplate, {
-                callback: function (doc) {
-                    doc.save('GymPlan.pdf');
-                    // Clean up: hide the template and remove the temporary div
-                    pdfTemplate.classList.add('hidden');
-                    tempDiv.remove(); // Remove the temporary div from the body
-
-                    // Restore button state
-                    downloadPdfButton.innerHTML = originalButtonContent;
-                    downloadPdfButton.disabled = false;
-                },
-                x: 0,
-                y: 0,
-                html2canvas: {
-                    scale: 3.5, // Significantly increased scale for more content per page
-                    logging: true,
-                    useCORS: true, // Important for images
-                    width: templateRenderedWidth // Use the dynamically obtained width
-                },
-                margin: [5, 5, 5, 5], // Reduced margins
-                autoPaging: 'text', // Automatically paginate based on text flow
-            });
+            doc.save('GymPlan.pdf');
         }
 
     </script>
