@@ -673,57 +673,62 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         }
 
         // --- Utility Functions ---
-      function downloadPDF() {
+  function downloadPDF() {
   if (!currentPlanData) {
     alert("Please generate a plan first!");
     return;
   }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-  const { plan, summary, meals } = currentPlanData;
 
-  // Layout constants
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+  const { plan, meals } = currentPlanData;
+
+  // ——— Layout constants ———
   const margin = 15;
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const usableWidth = pageWidth - margin * 2;
-  const accent = { r: 30, g: 144, b: 255 };  // DodgerBlue
+  const pad = 4;                          // cell padding
+  const accent = { r: 30, g: 144, b: 255 };// DodgerBlue
 
   let y = margin;
 
-  // ——— HEADER ———
-  doc.setFont("helvetica", "bold")
+  // ——— Global font setup ———
+  doc.setFont("times", "normal");
+  doc.setFontSize(12);
+
+  // ——— Header ———
+  doc.setTextColor(accent.r, accent.g, accent.b)
+     .setFont("times", "bold")
      .setFontSize(26)
-     .setTextColor(accent.r, accent.g, accent.b)
      .text("GymPlan", margin, y);
   y += 8;
-
-  doc.setFont("helvetica", "normal")
+  doc.setFont("times", "normal")
      .setFontSize(11)
      .setTextColor(0)
      .text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
   y += 12;
 
-  // ——— DAILY PLANS ———
+  // ——— Daily Plans ———
   plan.forEach(day => {
-    // page break
+    // page break if needed
     if (y > pageHeight - 60) {
       doc.addPage();
       y = margin;
     }
 
-    // shaded header bar
+    // shaded title bar
     doc.setFillColor(245)
-       .rect(margin - 2, y - 6, usableWidth + 4, 10, 'F');
+       .rect(margin - 2, y - 6, usableWidth + 4, 10, "F");
 
-    // day heading
-    doc.setFont("helvetica", "bold")
+    // Day heading
+    doc.setFont("times", "bold")
        .setFontSize(16)
        .setTextColor(accent.r, accent.g, accent.b)
        .text(`${day.day}: ${day.focus}`, margin, y);
     y += 6;
 
-    // accent underline
+    // underline
     doc.setDrawColor(accent.r, accent.g, accent.b)
        .setLineWidth(0.5)
        .line(margin, y, pageWidth - margin, y);
@@ -731,43 +736,39 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
 
     // exercises
     day.exercises.forEach(ex => {
-      // prepare text lines
+      // wrap text
       const exText = `• ${ex.name} – ${ex.sets}×${ex.reps} reps (${ex.rest_seconds}s rest)`;
-      const exLines = doc.splitTextToSize(exText, usableWidth - 4);
-
+      const exLines = doc.splitTextToSize(exText, usableWidth - pad * 2);
       let noteLines = [];
       if (ex.notes) {
-        noteLines = doc.splitTextToSize(`↳ Notes: ${ex.notes}`, usableWidth - 8);
+        noteLines = doc.splitTextToSize(`Notes: ${ex.notes}`, usableWidth - pad * 2);
       }
 
-      // compute box height
-      const exHeight = exLines.length * 5;
-      const noteHeight = noteLines.length * 4;
-      const boxHeight = exHeight + noteHeight + 8;
+      // measure box height
+      const exH = exLines.length * 5;
+      const noteH = noteLines.length * 4;
+      const boxH = exH + noteH + pad * 2;
 
-      // draw box
+      // draw exercise box
       doc.setDrawColor(200)
-         .rect(margin - 2, y - 3, usableWidth + 4, boxHeight);
+         .rect(margin, y, usableWidth, boxH);
 
-      // write exercise
-      doc.setFont("helvetica", "normal")
+      // print exercise
+      doc.setFont("times", "normal")
          .setFontSize(11)
          .setTextColor(0)
-         .text(exLines, margin, y);
-      y += exHeight;
+         .text(exLines, margin + pad, y + pad);
 
-      // write notes
+      // print notes
       if (noteLines.length) {
-        doc.setFont("helvetica", "italic")
+        doc.setFont("times", "italic")
            .setFontSize(10)
-           .text(noteLines, margin + 4, y);
-        y += noteHeight;
-        doc.setFont("helvetica", "normal")
+           .text(noteLines, margin + pad, y + pad + exH);
+        doc.setFont("times", "normal")
            .setFontSize(11);
       }
 
-      y += 6;
-      // page break if needed
+      y += boxH + 6;
       if (y > pageHeight - 40) {
         doc.addPage();
         y = margin;
@@ -777,60 +778,62 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
     y += 4;
   });
 
-  // ——— NUTRITION GUIDANCE ———
+  // ——— Nutrition Guidance ———
   if (meals && meals.macros) {
     if (y > pageHeight - 80) {
       doc.addPage();
       y = margin;
     }
 
-    // Nutrition header
+    // shaded header
     doc.setFillColor(245)
-       .rect(margin - 2, y - 6, usableWidth + 4, 10, 'F');
-    doc.setFont("helvetica", "bold")
+       .rect(margin - 2, y - 6, usableWidth + 4, 10, "F");
+
+    doc.setFont("times", "bold")
        .setFontSize(16)
        .setTextColor(accent.r, accent.g, accent.b)
        .text("Nutrition Guidance", margin, y);
     y += 8;
 
-    // table rows
+    // build table data
     const table = [
       ["Target Calories", `${meals.macros.daily_calories || meals.daily_calories} kcal`],
       ["Protein", `${meals.macros.protein_g} g`],
       ["Fats", `${meals.macros.fats_g} g`],
       ["Carbs", `${meals.macros.carbs_g} g`],
     ];
-    const rowHeight = 8;
+    const rowH = 8;
+
+    doc.setFont("times", "normal").setFontSize(11).setTextColor(0);
     table.forEach((row, i) => {
-      const rowY = y + i * rowHeight;
+      const rowY = y + i * rowH;
       // cell border
       doc.setDrawColor(200)
-         .rect(margin, rowY - 6, usableWidth, rowHeight);
+         .rect(margin, rowY - 6, usableWidth, rowH);
       // label
-      doc.setFont("helvetica", "normal")
-         .setFontSize(11)
-         .setTextColor(0)
-         .text(row[0], margin + 2, rowY - 1);
-      // value
-      doc.text(row[1], margin + usableWidth - 2, rowY - 1, { align: "right" });
+      doc.text(row[0], margin + pad, rowY - 1);
+      // value, right‑aligned
+      doc.text(row[1], margin + usableWidth - pad, rowY - 1, { align: "right" });
     });
-    y += table.length * rowHeight + 4;
+    y += table.length * rowH + 4;
   }
 
-  // ——— FOOTER (page x of y) ———
+  // ——— Footer ———
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
-       .setFont("helvetica", "normal")
+       .setFont("times", "normal")
        .setFontSize(9)
        .setTextColor(150)
        .text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 10, {
-         align: "right",
+         align: "right"
        });
   }
 
+  // save!
   doc.save("GymPlan.pdf");
 }
+
 
 
 
