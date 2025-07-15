@@ -337,38 +337,7 @@
     </main>
 
     <!-- ─── PDF TEMPLATE (hidden) ─── -->
-    <div id="pdf-template" class="hidden p-8 bg-white text-gray-900 font-sans">
-      <!-- Header -->
-      <header class="flex items-center mb-6 border-b pb-4">
-        <img src="logo.png.png" alt="GymPlan.fit Logo" class="h-12 mr-4">
-        <div>
-          <h1 class="text-2xl font-bold">Gym<span class="text-blue-500">Plan</span>.fit</h1>
-          <p class="text-sm text-gray-600">Generated: <span id="pdf-date"></span></p>
-        </div>
-      </header>
-
-      <!-- Workout Days -->
-      <section class="space-y-8">
-        <!-- Repeat this block for each day -->
-        <article class="page-break-inside-avoid">
-          <h2 class="text-xl font-semibold mb-3">Day 1: Push (Chest, Shoulders, Triceps)</h2>
-          <ul class="space-y-2">
-            <li>
-              <strong>Dumbbell Bench Press</strong> – 3×8 @ 75s rest
-              <p class="text-sm text-gray-600 italic">Focus on controlled movement.</p>
-            </li>
-            <!-- …other exercises -->
-          </ul>
-        </article>
-        <!-- /Repeat -->
-      </section>
-
-      <!-- Footer -->
-      <footer class="fixed bottom-0 left-0 w-full text-center text-xs text-gray-500 py-4">
-        <span class="pageNumber"></span> / <span class="totalPages"></span>
-      </footer>
-    </div>
-    <!-- ─── end PDF TEMPLATE ─── -->
+    <!-- Removed as the PDF will be generated directly using jsPDF's text and line drawing capabilities -->
     
     <!-- Footer -->
     <footer class="bg-gray-900 text-center py-8">
@@ -831,81 +800,189 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                 return;
             }
 
+            const originalButtonContent = downloadPdfButton.innerHTML;
+            downloadPdfButton.innerHTML = `<div class="swap-loader mr-2"></div> Generating...`;
+            downloadPdfButton.disabled = true;
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-            const { plan, meals } = currentPlanData;
+            const { plan, summary, meals } = currentPlanData;
 
-            let y = 20;
-            const pageMargin = 15;
+            let y = 20; // Current Y position on the page
+            const pageMargin = 15; // Left/Right margin
+            const lineSpacing = 4; // Vertical spacing between lines
+            const sectionSpacing = 8; // Vertical spacing between sections
+            const subSectionSpacing = 5; // Vertical spacing within sections (e.g., between exercise and cardio)
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
-            const usableWidth = pageWidth - (pageMargin * 2);
+            const usableWidth = pageWidth - (pageMargin * 2); // Width available for text
 
-            // Header
-            doc.setFontSize(24);
+            // --- Header ---
+            // Add logo (assuming logo.png.png is available in the root and jsPDF can access it)
+            // Note: For actual deployment, ensure the image path is correct and accessible.
+            // If the image doesn't load, you might need to convert it to base64 or provide a public URL.
+            // For now, I'll use a placeholder if the image fails.
+            try {
+                // Attempt to load the image. This might not work directly in all environments
+                // without a proper server setup or if the image is not base64 encoded.
+                // For a robust solution, you'd convert logo.png.png to base64 and use that.
+                const img = new Image();
+                img.src = 'logo.png.png';
+                img.onload = () => {
+                    doc.addImage(img, 'PNG', pageMargin, y - 5, 15, 15); // x, y, width, height
+                };
+                // Adding a small delay to allow image to load before text, though not guaranteed
+                // For production, consider using Promise.all with image loading or base64.
+            } catch (e) {
+                console.warn("Could not load logo image for PDF, proceeding without it.", e);
+            }
+            
             doc.setFont("helvetica", "bold");
-            doc.text("GymPlan.fit", pageMargin, y);
+            doc.setTextColor(30, 30, 30); // Dark gray for text
+            doc.setFontSize(18);
+            doc.text("GymPlan.fit", pageMargin + 18, y + 5); // Adjust X for logo
             y += 10;
 
-            // Daily Plans
-            plan.forEach(day => {
-                if (y > pageHeight - 40) {
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("Generated Training & Meal Plan", pageMargin, y);
+            y += lineSpacing;
+
+            doc.setFontSize(8);
+            doc.text(`Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageMargin, y);
+            y += sectionSpacing * 2; // Extra space after header
+
+            // --- Plan Summary Section ---
+            doc.setDrawColor(200); // Light gray line
+            doc.line(pageMargin, y, pageWidth - pageMargin, y);
+            y += sectionSpacing;
+
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("Plan Summary", pageMargin, y);
+            y += sectionSpacing;
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Goal: ${summary.goal}`, pageMargin, y);
+            doc.text(`Days per Week: ${summary.days_per_week}`, pageMargin + usableWidth / 2, y);
+            y += lineSpacing;
+            doc.text(`Training Style: ${summary.style}`, pageMargin, y);
+            doc.text(`Equipment: ${summary.equipment_used.join(', ')}`, pageMargin + usableWidth / 2, y);
+            y += lineSpacing;
+            doc.text(`User Profile: ${summary.user_profile.sex}, ${summary.user_profile.age} years old, ${summary.user_profile.height_cm}cm, ${summary.user_profile.weight_kg}kg`, pageMargin, y);
+            y += lineSpacing;
+            doc.text(`Adjustments: ${summary.adjustments.length > 0 ? summary.adjustments.join(', ') : 'None'}`, pageMargin, y);
+            y += sectionSpacing * 1.5; // Space after summary
+
+            // --- Per-Day Workout Sections ---
+            plan.forEach((day, index) => {
+                // Add new page if current content won't fit
+                if (y + 50 > pageHeight) { // Estimate space needed for a new day section
                     doc.addPage();
-                    y = 20;
+                    y = 20; // Reset Y for new page
                 }
-                doc.setFontSize(14);
+
+                doc.setDrawColor(200); // Light gray line
+                doc.line(pageMargin, y, pageWidth - pageMargin, y);
+                y += sectionSpacing;
+
+                doc.setFontSize(11);
                 doc.setFont("helvetica", "bold");
                 doc.text(`${day.day}: ${day.focus}`, pageMargin, y);
-                y += 8;
+                y += subSectionSpacing;
 
                 day.exercises.forEach(ex => {
-                    const exerciseText = `${ex.name} - ${ex.sets} sets x ${ex.reps} reps, ${ex.rest_seconds}s rest.`;
-                    const notesText = `Notes: ${ex.notes || 'None'}`;
-                    const exerciseLines = doc.splitTextToSize(exerciseText, usableWidth);
-                    const notesLines = doc.splitTextToSize(notesText, usableWidth);
-
-                    if (y + (exerciseLines.length * 5) + (notesLines.length * 5) > pageHeight - 20) {
+                    if (y + 25 > pageHeight) { // Estimate space needed for an exercise block
                         doc.addPage();
                         y = 20;
                     }
-                    doc.setFontSize(11);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(exerciseLines, pageMargin, y);
-                    y += (exerciseLines.length * 5);
                     doc.setFontSize(9);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(ex.name, pageMargin + 2, y); // Slightly indented
+                    y += lineSpacing;
+
+                    doc.setFontSize(8);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`Sets: ${ex.sets}x${ex.reps} | Rest: ${ex.rest_seconds}s`, pageMargin + 5, y); // Further indented
+                    y += lineSpacing;
+
+                    doc.setFontSize(8);
                     doc.setFont("helvetica", "italic");
-                    doc.text(notesLines, pageMargin + 2, y);
-                    y += (notesLines.length * 5) + 3;
+                    const notesLines = doc.splitTextToSize(`Notes: ${ex.notes || 'None'}`, usableWidth - 10); // Adjust width for indent
+                    doc.text(notesLines, pageMargin + 5, y);
+                    y += (notesLines.length * lineSpacing);
+
+                    doc.setFontSize(8);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("Instructions:", pageMargin + 5, y);
+                    y += lineSpacing;
+                    ex.instructions.forEach(inst => {
+                        const instLines = doc.splitTextToSize(`• ${inst}`, usableWidth - 15); // Indent for bullet points
+                        doc.text(instLines, pageMargin + 8, y);
+                        y += (instLines.length * lineSpacing);
+                    });
+                    y += subSectionSpacing; // Space after each exercise
                 });
-                y += 7;
+
+                // Cardio section for the day
+                if (day.cardio) {
+                    if (y + 20 > pageHeight) { // Estimate space needed for cardio block
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Cardio", pageMargin, y);
+                    y += subSectionSpacing;
+
+                    doc.setFontSize(8);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`Type: ${day.cardio.type}`, pageMargin + 2, y);
+                    y += lineSpacing;
+                    doc.text(`Duration: ${day.cardio.duration_minutes} min`, pageMargin + 2, y);
+                    y += lineSpacing;
+                    doc.text(`Intensity: ${day.cardio.intensity}`, pageMargin + 2, y);
+                    y += lineSpacing;
+                    doc.text(`Timing: ${day.cardio.timing}`, pageMargin + 2, y);
+                    y += lineSpacing;
+                    const cardioNotesLines = doc.splitTextToSize(`Notes: ${day.cardio.notes || 'None'}`, usableWidth - 10);
+                    doc.text(cardioNotesLines, pageMargin + 2, y);
+                    y += (cardioNotesLines.length * lineSpacing);
+                    y += sectionSpacing;
+                }
             });
 
-            // Nutrition
+            // --- Daily Nutrition Summary ---
             if (meals && meals.macros) {
-                if (y > pageHeight - 40) {
+                if (y + 50 > pageHeight) { // Estimate space needed for nutrition section
                     doc.addPage();
                     y = 20;
                 }
-                doc.setDrawColor(200);
+                doc.setDrawColor(200); // Light gray line
                 doc.line(pageMargin, y, pageWidth - pageMargin, y);
-                y += 10;
-                doc.setFontSize(16);
-                doc.setFont("helvetica", "bold");
-                doc.text("Nutrition Guidance", pageMargin, y);
-                y += 7;
+                y += sectionSpacing;
 
-                doc.setFontSize(11);
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text("Daily Nutrition Summary", pageMargin, y);
+                y += sectionSpacing;
+
+                doc.setFontSize(9);
                 doc.setFont("helvetica", "normal");
-                doc.text(`Target Calories: ~${meals.macros.daily_calories || meals.daily_calories} kcal`, pageMargin, y);
-                y += 6;
-                doc.text(`Target Protein: ~${meals.macros.protein_g}g`, pageMargin, y);
-                y += 6;
-                doc.text(`Target Fats: ~${meals.macros.fats_g}g`, pageMargin, y);
-                y += 6;
-                doc.text(`Target Carbs: ~${meals.macros.carbs_g}g`, pageMargin, y);
+                doc.text(`Total Calories: ~${meals.macros.daily_calories || meals.daily_calories} kcal`, pageMargin, y);
+                doc.text(`Protein: ~${meals.macros.protein_g}g`, pageMargin + usableWidth / 2, y);
+                y += lineSpacing;
+                doc.text(`Carbs: ~${meals.macros.carbs_g}g`, pageMargin, y);
+                doc.text(`Fats: ~${meals.macros.fats_g}g`, pageMargin + usableWidth / 2, y);
+                y += sectionSpacing;
             }
 
             doc.save('GymPlan.pdf');
+
+            // Restore button state
+            downloadPdfButton.innerHTML = originalButtonContent;
+            downloadPdfButton.disabled = false;
         }
 
     </script>
