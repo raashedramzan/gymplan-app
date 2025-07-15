@@ -678,116 +678,160 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
     alert("Please generate a plan first!");
     return;
   }
-
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
   const { plan, summary, meals } = currentPlanData;
 
-  let y = 20;
+  // Layout constants
   const margin = 15;
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const usableWidth = pageWidth - margin * 2;
+  const accent = { r: 30, g: 144, b: 255 };  // DodgerBlue
+
+  let y = margin;
 
   // ——— HEADER ———
-  doc.setFont("helvetica", "bold").setFontSize(26);
-  doc.text("GymPlan", margin, y);
+  doc.setFont("helvetica", "bold")
+     .setFontSize(26)
+     .setTextColor(accent.r, accent.g, accent.b)
+     .text("GymPlan", margin, y);
   y += 8;
-  doc.setFontSize(12).setFont("helvetica", "normal");
-  doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
+
+  doc.setFont("helvetica", "normal")
+     .setFontSize(11)
+     .setTextColor(0)
+     .text(`Generated on: ${new Date().toLocaleDateString()}`, margin, y);
   y += 12;
 
   // ——— DAILY PLANS ———
-  plan.forEach((day, idx) => {
-    // Page break if needed
-    if (y > pageHeight - 50) {
-      doc.addPage();
-      y = margin;
-    }
-
-    // Day heading
-    doc.setFont("helvetica", "bold").setFontSize(16);
-    doc.setTextColor(30);
-    doc.text(`${day.day}: ${day.focus}`, margin, y);
-    y += 6;
-
-    // Divider under heading
-    doc.setDrawColor(200).setLineWidth(0.5);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 6;
-
-    // Exercises list
-    doc.setFont("helvetica", "normal").setFontSize(11);
-    day.exercises.forEach(ex => {
-      // Wrap and print bullet
-      const exText = `• ${ex.name} – ${ex.sets}×${ex.reps} reps (${ex.rest_seconds}s rest)`;
-      const lines = doc.splitTextToSize(exText, usableWidth);
-      doc.text(lines, margin + 2, y);
-      y += lines.length * 5;
-
-      // Notes, if any
-      if (ex.notes) {
-        const noteLines = doc.splitTextToSize(`   ↳ Notes: ${ex.notes}`, usableWidth);
-        doc.setFont("helvetica", "italic").setFontSize(10);
-        doc.text(noteLines, margin + 4, y);
-        y += noteLines.length * 4;
-        doc.setFont("helvetica", "normal").setFontSize(11);
-      }
-
-      // Page break check
-      if (y > pageHeight - 30) {
-        doc.addPage();
-        y = margin;
-      }
-    });
-
-    y += 8;
-  });
-
-  // ——— NUTRITION GUIDANCE ———
-  if (meals && meals.macros) {
+  plan.forEach(day => {
+    // page break
     if (y > pageHeight - 60) {
       doc.addPage();
       y = margin;
     }
 
-    // Section heading
-    doc.setFont("helvetica", "bold").setFontSize(16).setTextColor(30);
-    doc.text("Nutrition Guidance", margin, y);
+    // shaded header bar
+    doc.setFillColor(245)
+       .rect(margin - 2, y - 6, usableWidth + 4, 10, 'F');
+
+    // day heading
+    doc.setFont("helvetica", "bold")
+       .setFontSize(16)
+       .setTextColor(accent.r, accent.g, accent.b)
+       .text(`${day.day}: ${day.focus}`, margin, y);
     y += 6;
-    doc.setDrawColor(200).line(margin, y, pageWidth - margin, y);
+
+    // accent underline
+    doc.setDrawColor(accent.r, accent.g, accent.b)
+       .setLineWidth(0.5)
+       .line(margin, y, pageWidth - margin, y);
     y += 8;
 
-    // Macro table
-    const tableData = [
+    // exercises
+    day.exercises.forEach(ex => {
+      // prepare text lines
+      const exText = `• ${ex.name} – ${ex.sets}×${ex.reps} reps (${ex.rest_seconds}s rest)`;
+      const exLines = doc.splitTextToSize(exText, usableWidth - 4);
+
+      let noteLines = [];
+      if (ex.notes) {
+        noteLines = doc.splitTextToSize(`↳ Notes: ${ex.notes}`, usableWidth - 8);
+      }
+
+      // compute box height
+      const exHeight = exLines.length * 5;
+      const noteHeight = noteLines.length * 4;
+      const boxHeight = exHeight + noteHeight + 8;
+
+      // draw box
+      doc.setDrawColor(200)
+         .rect(margin - 2, y - 3, usableWidth + 4, boxHeight);
+
+      // write exercise
+      doc.setFont("helvetica", "normal")
+         .setFontSize(11)
+         .setTextColor(0)
+         .text(exLines, margin, y);
+      y += exHeight;
+
+      // write notes
+      if (noteLines.length) {
+        doc.setFont("helvetica", "italic")
+           .setFontSize(10)
+           .text(noteLines, margin + 4, y);
+        y += noteHeight;
+        doc.setFont("helvetica", "normal")
+           .setFontSize(11);
+      }
+
+      y += 6;
+      // page break if needed
+      if (y > pageHeight - 40) {
+        doc.addPage();
+        y = margin;
+      }
+    });
+
+    y += 4;
+  });
+
+  // ——— NUTRITION GUIDANCE ———
+  if (meals && meals.macros) {
+    if (y > pageHeight - 80) {
+      doc.addPage();
+      y = margin;
+    }
+
+    // Nutrition header
+    doc.setFillColor(245)
+       .rect(margin - 2, y - 6, usableWidth + 4, 10, 'F');
+    doc.setFont("helvetica", "bold")
+       .setFontSize(16)
+       .setTextColor(accent.r, accent.g, accent.b)
+       .text("Nutrition Guidance", margin, y);
+    y += 8;
+
+    // table rows
+    const table = [
       ["Target Calories", `${meals.macros.daily_calories || meals.daily_calories} kcal`],
       ["Protein", `${meals.macros.protein_g} g`],
       ["Fats", `${meals.macros.fats_g} g`],
       ["Carbs", `${meals.macros.carbs_g} g`],
     ];
-
-    doc.setFont("helvetica", "normal").setFontSize(11);
-    const col1X = margin;
-    const col2X = margin + usableWidth * 0.6;
-    tableData.forEach(([label, value]) => {
-      doc.text(label, col1X, y);
-      doc.text(value, col2X, y, { align: "right" });
-      y += 7;
+    const rowHeight = 8;
+    table.forEach((row, i) => {
+      const rowY = y + i * rowHeight;
+      // cell border
+      doc.setDrawColor(200)
+         .rect(margin, rowY - 6, usableWidth, rowHeight);
+      // label
+      doc.setFont("helvetica", "normal")
+         .setFontSize(11)
+         .setTextColor(0)
+         .text(row[0], margin + 2, rowY - 1);
+      // value
+      doc.text(row[1], margin + usableWidth - 2, rowY - 1, { align: "right" });
     });
+    y += table.length * rowHeight + 4;
   }
 
-  // ——— FOOTER ———
+  // ——— FOOTER (page x of y) ———
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(9).setTextColor(150);
-    doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 10, {
-      align: "right",
-    });
+    doc.setPage(i)
+       .setFont("helvetica", "normal")
+       .setFontSize(9)
+       .setTextColor(150)
+       .text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 10, {
+         align: "right",
+       });
   }
 
   doc.save("GymPlan.pdf");
 }
+
 
 
     </script>
