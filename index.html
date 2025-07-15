@@ -818,38 +818,38 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
             const usableWidth = pageWidth - (pageMargin * 2); // Width available for text
 
             // --- Header ---
+            const logoX = pageMargin;
+            const logoY = y - 5;
+            const logoWidth = 15;
+            const logoHeight = 15;
+            const textStartX = logoX + logoWidth + 3; // Space after logo
+
             // Add logo (assuming logo.png.png is available in the root and jsPDF can access it)
-            // Note: For actual deployment, ensure the image path is correct and accessible.
-            // If the image doesn't load, you might need to convert it to base64 or provide a public URL.
-            // For now, I'll use a placeholder if the image fails.
+            // For a robust solution, you'd convert logo.png.png to base64 and use that.
+            // For now, we'll try to add it, but it might not render if not properly served/encoded.
             try {
-                // Attempt to load the image. This might not work directly in all environments
-                // without a proper server setup or if the image is not base64 encoded.
-                // For a robust solution, you'd convert logo.png.png to base64 and use that.
                 const img = new Image();
                 img.src = 'logo.png.png';
                 img.onload = () => {
-                    doc.addImage(img, 'PNG', pageMargin, y - 5, 15, 15); // x, y, width, height
+                    doc.addImage(img, 'PNG', logoX, logoY, logoWidth, logoHeight);
                 };
-                // Adding a small delay to allow image to load before text, though not guaranteed
-                // For production, consider using Promise.all with image loading or base64.
             } catch (e) {
-                console.warn("Could not load logo image for PDF, proceeding without it.", e);
+                console.warn("Could not load logo image for PDF. Ensure it's accessible or base64 encoded.", e);
             }
             
             doc.setFont("helvetica", "bold");
             doc.setTextColor(30, 30, 30); // Dark gray for text
             doc.setFontSize(18);
-            doc.text("GymPlan.fit", pageMargin + 18, y + 5); // Adjust X for logo
+            doc.text("GymPlan.fit", textStartX, y + 5); // Adjust X for logo
             y += 10;
 
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
-            doc.text("Generated Training & Meal Plan", pageMargin, y);
+            doc.text("Generated Training & Meal Plan", pageMargin, y); // Aligned with left margin
             y += lineSpacing;
 
             doc.setFontSize(8);
-            doc.text(`Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageMargin, y);
+            doc.text(`Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageMargin, y); // Aligned with left margin
             y += sectionSpacing * 2; // Extra space after header
 
             // --- Plan Summary Section ---
@@ -878,7 +878,9 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
             // --- Per-Day Workout Sections ---
             plan.forEach((day, index) => {
                 // Add new page if current content won't fit
-                if (y + 50 > pageHeight) { // Estimate space needed for a new day section
+                // Estimate space needed for a new day section (header + 1 exercise + cardio)
+                const estimatedDayHeight = 11 + (day.exercises.length * 20) + (day.cardio ? 25 : 0); 
+                if (y + estimatedDayHeight > pageHeight - 15) { // Leave some bottom margin
                     doc.addPage();
                     y = 20; // Reset Y for new page
                 }
@@ -893,10 +895,13 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                 y += subSectionSpacing;
 
                 day.exercises.forEach(ex => {
-                    if (y + 25 > pageHeight) { // Estimate space needed for an exercise block
+                    // Estimate space for current exercise block (name, sets/rest, notes, instructions)
+                    const estimatedExerciseHeight = lineSpacing * 2 + doc.splitTextToSize(`Notes: ${ex.notes || 'None'}`, usableWidth - 10).length * lineSpacing + (ex.instructions.length * lineSpacing * 1.2) + subSectionSpacing;
+                    if (y + estimatedExerciseHeight > pageHeight - 15) { // Leave some bottom margin
                         doc.addPage();
                         y = 20;
                     }
+
                     doc.setFontSize(9);
                     doc.setFont("helvetica", "bold");
                     doc.text(ex.name, pageMargin + 2, y); // Slightly indented
@@ -927,7 +932,8 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
 
                 // Cardio section for the day
                 if (day.cardio) {
-                    if (y + 20 > pageHeight) { // Estimate space needed for cardio block
+                    const estimatedCardioHeight = 10 + (lineSpacing * 5) + subSectionSpacing;
+                    if (y + estimatedCardioHeight > pageHeight - 15) { // Leave some bottom margin
                         doc.addPage();
                         y = 20;
                     }
@@ -955,7 +961,8 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
 
             // --- Daily Nutrition Summary ---
             if (meals && meals.macros) {
-                if (y + 50 > pageHeight) { // Estimate space needed for nutrition section
+                const estimatedNutritionHeight = 12 + (lineSpacing * 2) + sectionSpacing;
+                if (y + estimatedNutritionHeight > pageHeight - 15) { // Leave some bottom margin
                     doc.addPage();
                     y = 20;
                 }
