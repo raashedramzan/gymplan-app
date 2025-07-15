@@ -132,7 +132,68 @@
             transform: scale(0.95);
         }
 
-        
+        /* PDF Specific Styles for better compactness */
+        #pdf-template {
+            font-size: 10pt; /* Overall smaller base font size */
+        }
+        #pdf-template h1 {
+            font-size: 20pt; /* Smaller header */
+        }
+        #pdf-template h2 {
+            font-size: 16pt; /* Smaller section titles */
+        }
+        #pdf-template h3 {
+            font-size: 14pt; /* Smaller sub-titles */
+        }
+        #pdf-template .text-sm {
+            font-size: 9pt; /* Smaller small text */
+        }
+        #pdf-template .text-xs {
+            font-size: 8pt; /* Even smaller extra small text */
+        }
+        #pdf-template .text-2xl {
+            font-size: 18pt; /* Adjust nutrition numbers */
+        }
+        #pdf-template .text-4xl {
+            font-size: 24pt; /* Adjust nutrition numbers */
+        }
+        #pdf-template .space-y-2 > li {
+            margin-bottom: 0.25rem; /* Reduce space between list items */
+        }
+        #pdf-template .p-4 {
+            padding: 0.75rem; /* Reduce padding */
+        }
+        #pdf-template .mb-2 {
+            margin-bottom: 0.25rem; /* Reduce margin bottom */
+        }
+        #pdf-template .mb-3 {
+            margin-bottom: 0.5rem; /* Reduce margin bottom */
+        }
+        #pdf-template .mb-6 {
+            margin-bottom: 1rem; /* Reduce margin bottom */
+        }
+        #pdf-template .pb-4 {
+            padding-bottom: 0.5rem; /* Reduce padding bottom */
+        }
+        #pdf-template .mt-1 {
+            margin-top: 0.25rem; /* Reduce margin top */
+        }
+        #pdf-template .mt-3 {
+            margin-top: 0.5rem; /* Reduce margin top */
+        }
+        #pdf-template .mt-4 {
+            margin-top: 0.75rem; /* Reduce margin top */
+        }
+        #pdf-template .mt-10 {
+            margin-top: 1.5rem; /* Reduce margin top */
+        }
+        .page-break-after {
+            page-break-after: always;
+        }
+        .page-break-before {
+            page-break-before: always;
+        }
+
     </style>
 
         <!-- Preconnect to speed up font loading -->
@@ -710,7 +771,7 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                 displayPlan(resultJson);
             } catch (error) {
                 console.error("Error generating plan:", error);
-                resultsContainer.innerHTML = `<p class="text-center text-red-400">Sorry, we couldn't generate your plan. The AI response was not in the correct format. Please try again.</p>`;
+                alert("Sorry, we couldn't generate your plan. The AI response was not in the correct format. Please try again.");
             } finally {
                 loaderContainer.classList.add('hidden');
                 resultsContainer.classList.remove('hidden');
@@ -852,23 +913,23 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
             pdfWorkoutDays.innerHTML = '';
             plan.forEach(day => {
                 const exercisesHtml = day.exercises.map(ex => `
-                    <li class="mb-2 pb-2 border-b border-gray-200 last:border-b-0">
+                    <li class="mb-1 pb-1 border-b border-gray-200 last:border-b-0">
                         <strong class="text-gray-800">${ex.name}</strong> – ${ex.sets}x${ex.reps} @ ${ex.rest_seconds}s rest
-                        <p class="text-xs text-gray-600 italic mt-1">Notes: ${ex.notes || 'None'}</p>
-                        <ul class="list-disc list-inside text-xs text-gray-600 mt-1">
+                        <p class="text-xs text-gray-600 italic mt-0.5">Notes: ${ex.notes || 'None'}</p>
+                        <ul class="list-disc list-inside text-xs text-gray-600 mt-0.5 ml-2">
                             ${ex.instructions.map(inst => `<li>${inst}</li>`).join('')}
                         </ul>
                     </li>
                 `).join('');
 
                 pdfWorkoutDays.innerHTML += `
-                    <article class="p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-blue-600 mb-2">${day.day}: ${day.focus}</h3>
-                        <ul class="space-y-2">
+                    <article class="p-3 bg-white rounded-lg shadow-sm border border-gray-200 mb-4 page-break-inside-avoid">
+                        <h3 class="text-lg font-bold text-blue-600 mb-1">${day.day}: ${day.focus}</h3>
+                        <ul class="space-y-1">
                             ${exercisesHtml}
                         </ul>
                         ${day.cardio ? `
-                            <div class="mt-4 pt-4 border-t border-gray-200">
+                            <div class="mt-3 pt-3 border-t border-gray-200">
                                 <h4 class="text-md font-semibold text-gray-800">Cardio: ${day.cardio.type}</h4>
                                 <p class="text-sm text-gray-700">Duration: ${day.cardio.duration_minutes} min, Intensity: ${day.cardio.intensity}</p>
                                 <p class="text-sm text-gray-700">Timing: ${day.cardio.timing}</p>
@@ -883,21 +944,21 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
             if (meals && meals.macros) {
                 const macros = meals.macros;
                 pdfNutritionSection.innerHTML = `
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">AI Nutrition Guidance</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                        <div class="bg-white p-4 rounded-lg border border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">AI Nutrition Guidance</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+                        <div class="bg-white p-3 rounded-lg border border-gray-200">
                             <p class="text-sm text-gray-600">Calories</p>
                             <p class="text-2xl font-bold text-blue-600">${macros.daily_calories || meals.daily_calories} kcal</p>
                         </div>
-                        <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <div class="bg-white p-3 rounded-lg border border-gray-200">
                             <p class="text-sm text-gray-600">Protein</p>
                             <p class="text-2xl font-bold text-blue-600">${macros.protein_g}g</p>
                         </div>
-                        <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <div class="bg-white p-3 rounded-lg border border-gray-200">
                             <p class="text-sm text-gray-600">Carbs</p>
                             <p class="text-2xl font-bold text-blue-600">${macros.carbs_g}g</p>
                         </div>
-                        <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <div class="bg-white p-3 rounded-lg border border-gray-200">
                             <p class="text-sm text-gray-600">Fats</p>
                             <p class="text-2xl font-bold text-blue-600">${macros.fats_g}g</p>
                         </div>
@@ -950,7 +1011,7 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                 x: 0,
                 y: 0,
                 html2canvas: {
-                    scale: 0.75, // Adjust scale for better quality/fit on A4
+                    scale: 1.2, // Increased scale for more content per page
                     logging: true,
                     useCORS: true, // Important for images
                     width: templateRenderedWidth // Use the dynamically obtained width
