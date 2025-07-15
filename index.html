@@ -561,111 +561,56 @@
             manualSmoothScroll(planOutputSection);
 
             try {
-                const prompt = `
-You are a certified strength and conditioning coach, clinical exercise physiologist, and precision nutrition expert.
+               const prompt = `
+You are a certified strength coach, exercise physiologist and nutrition expert.
 
-Your job is to return a fully customized **weekly training and meal plan**, built around the user's input. The response must be **strictly formatted** as a valid JSON object. No markdown, no text, no headers — only JSON.
+⚠️ CRITICAL: You _must_ use the user’s exact split.  No defaults.
 
-**CRITICAL INSTRUCTION**: The generated plan MUST strictly adhere to the user's preferred training split (style) if one is provided. DO NOT deviate from the specified training style.
+"If training_split = 'Upper/Lower' then DAY 1 = Upper, DAY 2 = Lower, DAY 3 = Upper, etc. — no exceptions."  
 
--------------------
-✅ JSON STRUCTURE (Strictly Follow):
+
+
+---  
+**USER INPUTS**  
+• days_per_week = ${data.days}  
+• goal           = ${JSON.stringify(data.goal)}  
+• equipment      = ${JSON.stringify(data.equipment)}  
+• training_split = ${JSON.stringify(data.style || 'Not specified')}  
+• limitations    = ${JSON.stringify(data.limitations || 'None')}  
+
+---  
+**OUTPUT**  
+Return _only_ JSON with this structure:
+
 {
   "plan": [
     {
       "day": "Day 1",
-      "focus": "Pull (Back, Biceps)",
-      "exercises": [
-        {
-          "name": "Dumbbell Bent-Over Row",
-          "sets": 3,
-          "reps": 10,
-          "rest_seconds": 60,
-          "notes": "Use moderate weight. Avoid jerking motion.",
-          "youtube_search_query": "how to do dumbbell bent over row",
-          "instructions": [
-            "Hinge at your hips, keeping your back straight.",
-            "Pull the dumbbells towards your lower chest.",
-            "Squeeze your back muscles at the top."
-          ]
-        }
-      ],
-      "cardio": {
-        "type": "MISS – Incline Walk",
-        "duration_minutes": 30,
-        "intensity": "Moderate (RPE 6/10)",
-        "timing": "Post-weight training",
-        "notes": "Supports fat loss via steady-state effort."
-      }
-    }
+      "focus": "${data.style === 'Upper/Lower' ? 'Upper' : '…'}",
+      "exercises": [ … ],
+      "cardio": { … }
+    },
+    {
+      "day": "Day 2",
+      "focus": "${data.style === 'Upper/Lower' ? 'Lower' : '…'}",
+      …
+    },
+    // … repeat/fill out exactly ${data.days} entries, alternating Upper/Lower
   ],
-  "meals": {
-    "daily_calories": 2100,
-    "macros": {
-      "protein_g": 160,
-      "carbs_g": 180,
-      "fats_g": 70
-    }
-  },
+  "meals": { … },
   "summary": {
-    "goal": "Fat Loss",
-    "style": "Push/Pull/Legs",
-    "days_per_week": 5,
-    "volume_type": "Low volume, high intensity",
-    "equipment_used": ["Dumbbells", "Resistance Bands"],
-    "adjustments": ["Avoid deep lunges due to mild knee discomfort"],
+    "goal": ${JSON.stringify(data.goal)},
+    "style": ${JSON.stringify(data.style)},
+    "days_per_week": ${data.days},
+    "equipment_used": [ ${JSON.stringify(data.equipment)} ],
+    "adjustments": [ ${JSON.stringify(data.limitations)} ],
     "user_profile": {
-      "sex": "Male",
-      "age": 28,
-      "weight_kg": 82,
-      "height_cm": 178
+      "sex": ${JSON.stringify(data.gender)},
+      "weight_kg": ${data.weight},
+      "height_cm": ${data.height}
     }
   }
 }
--------------------
-
-✅ LOGIC RULES:
-1. Each exercise must include: "name", "sets", "reps", "rest_seconds", "notes", "youtube_search_query", and "instructions" (minimum 3 clear steps).
-2. Match plan structure to user goal and training style.
-   - Fat Loss → 6–10 reps, short rests (45–90 sec), cardio post-training (MISS or HIIT)
-   - Muscle Gain → 6–8 reps, 3–5 sets, 75–90% 1RM, optional walking
-   - Strength → 3–5 reps, long rest (2–4 min)
-3. Always prioritize compound movements at the start of each workout.
-4. Only use exercises compatible with available equipment.
-5. Do not repeat the same exercises in the same week.
-6. Match rest_seconds to rep scheme:
-   - 3–5 reps → 120–180 sec
-   - 6–10 reps → 60–90 sec
-   - 12+ reps → 30–45 sec
-7. Cardio logic:
-   - Fat Loss → 20–40 min MISS or 10–20 min HIIT (post-weight)
-   - Muscle Gain → 15–30 min light walking (optional)
-   - Include cardio type, timing, duration, and RPE/notes
-8. Mifflin-St Jeor for calories: 
-   \`10 × weight_kg + 6.25 × height_cm − 5 × age + 5 (male)\`
-   Multiply by 1.5 activity factor.
-9. Macronutrient targets:
-   - Protein: 1.8–2.2g/kg (fat loss), 2–2.5g/kg (muscle gain)
-   - Fats: 25–30% of total calories
-   - Carbs: remainder (calories − protein×4 − fat×9) ÷ 4
-10. If notes include:
-   - "knee issues" → avoid lunges, jump squats, deep squats
-   - "short on time" → limit midweek sessions to ≤35 min
-   - "morning sessions" → minimize warm-up, avoid fasted cardio
-11. Return **only valid JSON** — no commentary, text, or markdown.
-
--------------------
-
-✅ INPUT VARIABLES TO BE INJECTED:
-- sex: \${JSON.stringify(data.gender)}
-- weight_kg: \${data.weight}
-- height_cm: \${data.height}
-- age: 28
-- days_per_week: \${data.days}
-- goal: \${JSON.stringify(data.goal)}
-- equipment: [\${data.equipment.map(eq => JSON.stringify(eq)).join(", ")}]
-- style: \${JSON.stringify(data.style || 'Not specified, choose best fit')}
-- notes: \${JSON.stringify(data.limitations || 'None')}
 `;
 
 
