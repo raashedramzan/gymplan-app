@@ -517,11 +517,10 @@
 
             try {
                 const prompt = `
-You are a certified strength and conditioning coach and clinical exercise physiologist. You also hold a precision nutrition certification. Your task is to generate a **goal-driven**, **science-backed**, and **realistic weekly training and meal plan** for a user. The output must be in **valid JSON** with no explanation or extra text.
+You are a certified strength and conditioning coach, clinical exercise physiologist, and precision nutrition expert. Your job is to return a fully customized **weekly training and meal plan**, built around the user's input. The response must be **strictly formatted** as a valid JSON object. No markdown, no text, no headers — only JSON.
 
 -------------------
-✅ OUTPUT FORMAT:
-Return a single valid JSON object like this:
+✅ JSON STRUCTURE (Strictly Follow):
 {
   "plan": [ { "day": "Day 1", "focus": "Pull (Back, Biceps)", "exercises": [ { "name": "Dumbbell Bent-Over Row", "sets": 3, "reps": 10, "rest_seconds": 60, "notes": "Use moderate weight. Avoid jerking motion.", "youtube_search_query": "how to do dumbbell bent over row", "instructions": ["Hinge at your hips, keeping your back straight.", "Pull the dumbbells towards your lower chest.", "Squeeze your back muscles at the top."] } ], "cardio": { "type": "MISS – Incline Walk", "duration_minutes": 30, "intensity": "Moderate (RPE 6/10)", "timing": "Post-weight training", "notes": "Supports fat loss via steady-state effort." } } ],
   "meals": { "daily_calories": 2100, "macros": { "protein_g": 160, "carbs_g": 180, "fats_g": 70 } },
@@ -532,8 +531,7 @@ Return a single valid JSON object like this:
 ✅ LOGIC RULES:
 1.  **Workout Plan:** For each exercise, you MUST include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
 2.  **Nutrition logic:** Use **Mifflin-St Jeor formula** as a base for daily calories. Set macros as: **Protein**: 1.8–2.2g/kg for fat loss, 2–2.5g/kg for muscle gain; **Fats**: 25–30% total calories; **Carbs**: Remaining cals.
-3.  **Rationale:** The "adjustments" array in the summary should serve as the rationale, explaining how the plan was tailored to the user's specific notes and limitations. If there are no notes, this can be a more general statement about the plan's design.
-4.  Return **only valid JSON**, no explanations, markdown, or commentary.
+3.  Return **only valid JSON**, no explanations, markdown, or commentary.
 
 -------------------
 
@@ -609,7 +607,7 @@ Return a single valid JSON object like this:
 
         // --- UI Display ---
         function displayPlan(data) {
-            const { plan, summary, meals } = data;
+            const { plan, meals } = data;
             planDetailsContainer.innerHTML = '';
             nutritionSection.innerHTML = '';
 
