@@ -134,64 +134,76 @@
 
         /* PDF Specific Styles for better compactness */
         #pdf-template {
-            font-size: 10pt; /* Overall smaller base font size */
+            font-size: 9pt; /* Overall smaller base font size */
         }
         #pdf-template h1 {
-            font-size: 20pt; /* Smaller header */
+            font-size: 18pt; /* Smaller header */
         }
         #pdf-template h2 {
-            font-size: 16pt; /* Smaller section titles */
+            font-size: 14pt; /* Smaller section titles */
         }
         #pdf-template h3 {
-            font-size: 14pt; /* Smaller sub-titles */
+            font-size: 12pt; /* Smaller sub-titles */
         }
         #pdf-template .text-sm {
-            font-size: 9pt; /* Smaller small text */
+            font-size: 8pt; /* Smaller small text */
         }
         #pdf-template .text-xs {
-            font-size: 8pt; /* Even smaller extra small text */
+            font-size: 7pt; /* Even smaller extra small text */
         }
         #pdf-template .text-2xl {
-            font-size: 18pt; /* Adjust nutrition numbers */
+            font-size: 16pt; /* Adjust nutrition numbers */
         }
         #pdf-template .text-4xl {
-            font-size: 24pt; /* Adjust nutrition numbers */
+            font-size: 20pt; /* Adjust nutrition numbers */
         }
         #pdf-template .space-y-2 > li {
-            margin-bottom: 0.25rem; /* Reduce space between list items */
+            margin-bottom: 0.15rem; /* Reduce space between list items */
+        }
+        #pdf-template .space-y-1 > li {
+            margin-bottom: 0.1rem; /* Further reduce space for exercises */
         }
         #pdf-template .p-4 {
-            padding: 0.75rem; /* Reduce padding */
+            padding: 0.5rem; /* Reduce padding */
+        }
+        #pdf-template .p-3 {
+            padding: 0.4rem; /* Reduce padding for exercise blocks */
         }
         #pdf-template .mb-2 {
-            margin-bottom: 0.25rem; /* Reduce margin bottom */
+            margin-bottom: 0.2rem; /* Reduce margin bottom */
         }
         #pdf-template .mb-3 {
-            margin-bottom: 0.5rem; /* Reduce margin bottom */
+            margin-bottom: 0.4rem; /* Reduce margin bottom */
         }
         #pdf-template .mb-6 {
-            margin-bottom: 1rem; /* Reduce margin bottom */
+            margin-bottom: 0.8rem; /* Reduce margin bottom */
         }
         #pdf-template .pb-4 {
-            padding-bottom: 0.5rem; /* Reduce padding bottom */
+            padding-bottom: 0.4rem; /* Reduce padding bottom */
         }
         #pdf-template .mt-1 {
-            margin-top: 0.25rem; /* Reduce margin top */
+            margin-top: 0.2rem; /* Reduce margin top */
         }
         #pdf-template .mt-3 {
-            margin-top: 0.5rem; /* Reduce margin top */
+            margin-top: 0.4rem; /* Reduce margin top */
         }
         #pdf-template .mt-4 {
-            margin-top: 0.75rem; /* Reduce margin top */
+            margin-top: 0.6rem; /* Reduce margin top */
         }
         #pdf-template .mt-10 {
-            margin-top: 1.5rem; /* Reduce margin top */
+            margin-top: 1.2rem; /* Reduce margin top */
+        }
+        #pdf-template .ml-2 {
+            margin-left: 0.4rem; /* Reduce left margin for bullet points */
         }
         .page-break-after {
             page-break-after: always;
         }
         .page-break-before {
             page-break-before: always;
+        }
+        .page-break-inside-avoid {
+            page-break-inside: avoid;
         }
 
     </style>
@@ -406,31 +418,50 @@
         <img src="logo.png.png" alt="GymPlan.fit Logo" class="h-12 mr-4">
         <div>
           <h1 class="text-2xl font-bold text-gray-900">Gym<span class="text-blue-600">Plan</span>.fit</h1>
-          <p class="text-sm text-gray-600">Generated: <span id="pdf-date"></span></p>
+          <p class="text-sm text-gray-600 mt-1">Generated Training & Meal Plan</p>
+          <p class="text-xs text-gray-500">Date: <span id="pdf-date"></span></p>
         </div>
       </header>
 
       <!-- Workout Summary -->
-      <section class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <section class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 page-break-after">
         <h2 class="text-xl font-bold mb-3 text-gray-800">Plan Summary</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
             <div><strong>Goal:</strong> <span id="pdf-summary-goal"></span></div>
             <div><strong>Days per Week:</strong> <span id="pdf-summary-days"></span></div>
             <div><strong>Training Style:</strong> <span id="pdf-summary-style"></span></div>
             <div><strong>Equipment:</strong> <span id="pdf-summary-equipment"></span></div>
-            <div><strong>User Profile:</strong> <span id="pdf-user-profile"></span></div>
+            <div class="col-span-2"><strong>User Profile:</strong> <span id="pdf-user-profile"></span></div>
         </div>
         <p class="text-sm text-gray-700 mt-3"><strong>Adjustments:</strong> <span id="pdf-summary-adjustments"></span></p>
       </section>
 
       <!-- Workout Days Container -->
-      <section id="pdf-workout-days" class="space-y-8">
+      <section id="pdf-workout-days" class="space-y-6">
         <!-- Day blocks will be injected here -->
       </section>
 
       <!-- Nutrition Section Container -->
-      <section id="pdf-nutrition-section" class="mt-10 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <!-- Nutrition details will be injected here -->
+      <section id="pdf-nutrition-section" class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200 page-break-before">
+        <h3 class="text-xl font-bold text-gray-800 mb-3">Daily Nutrition Summary</h3>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                <p class="text-sm text-gray-600">Calories</p>
+                <p class="text-2xl font-bold text-blue-600"><span id="pdf-calories"></span> kcal</p>
+            </div>
+            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                <p class="text-sm text-gray-600">Protein</p>
+                <p class="text-2xl font-bold text-blue-600"><span id="pdf-protein"></span>g</p>
+            </div>
+            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                <p class="text-sm text-gray-600">Carbs</p>
+                <p class="text-2xl font-bold text-blue-600"><span id="pdf-carbs"></span>g</p>
+            </div>
+            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                <p class="text-sm text-gray-600">Fats</p>
+                <p class="text-2xl font-bold text-blue-600"><span id="pdf-fats"></span>g</p>
+            </div>
+        </div>
       </section>
     </div>
     <!-- ─── end PDF TEMPLATE ─── -->
@@ -523,6 +554,10 @@
         const pdfSummaryAdjustments = document.getElementById('pdf-summary-adjustments');
         const pdfWorkoutDays = document.getElementById('pdf-workout-days');
         const pdfNutritionSection = document.getElementById('pdf-nutrition-section');
+        const pdfCalories = document.getElementById('pdf-calories');
+        const pdfProtein = document.getElementById('pdf-protein');
+        const pdfCarbs = document.getElementById('pdf-carbs');
+        const pdfFats = document.getElementById('pdf-fats');
 
 
         // --- Form Initialization ---
@@ -911,7 +946,7 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
 
             // Populate workout days
             pdfWorkoutDays.innerHTML = '';
-            plan.forEach(day => {
+            plan.forEach((day, index) => {
                 const exercisesHtml = day.exercises.map(ex => `
                     <li class="mb-1 pb-1 border-b border-gray-200 last:border-b-0">
                         <strong class="text-gray-800">${ex.name}</strong> – ${ex.sets}x${ex.reps} @ ${ex.rest_seconds}s rest
@@ -937,35 +972,20 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                             </div>
                         ` : ''}
                     </article>
+                    ${index < plan.length - 1 ? '<hr class="border-gray-300 my-6">' : ''} <!-- Light horizontal line between days -->
                 `;
             });
 
             // Populate nutrition
             if (meals && meals.macros) {
                 const macros = meals.macros;
-                pdfNutritionSection.innerHTML = `
-                    <h3 class="text-xl font-bold text-gray-800 mb-3">AI Nutrition Guidance</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-center">
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Calories</p>
-                            <p class="text-2xl font-bold text-blue-600">${macros.daily_calories || meals.daily_calories} kcal</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Protein</p>
-                            <p class="text-2xl font-bold text-blue-600">${macros.protein_g}g</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Carbs</p>
-                            <p class="text-2xl font-bold text-blue-600">${macros.carbs_g}g</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Fats</p>
-                            <p class="text-2xl font-bold text-blue-600">${macros.fats_g}g</p>
-                        </div>
-                    </div>
-                `;
+                pdfCalories.textContent = macros.daily_calories || meals.daily_calories;
+                pdfProtein.textContent = macros.protein_g;
+                pdfCarbs.textContent = macros.carbs_g;
+                pdfFats.textContent = macros.fats_g;
+                pdfNutritionSection.classList.remove('hidden'); // Ensure nutrition section is visible if data exists
             } else {
-                pdfNutritionSection.innerHTML = ''; // Clear if no nutrition data
+                pdfNutritionSection.classList.add('hidden'); // Hide if no nutrition data
             }
 
             // Create a temporary container for the PDF template to ensure it's rendered in the DOM
@@ -1011,7 +1031,7 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
                 x: 0,
                 y: 0,
                 html2canvas: {
-                    scale: 1.2, // Increased scale for more content per page
+                    scale: 1.8, // Further increased scale for more content per page
                     logging: true,
                     useCORS: true, // Important for images
                     width: templateRenderedWidth // Use the dynamically obtained width
