@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gymplan.fit/sitemap.xml
