@@ -131,6 +131,24 @@
             opacity: 0;
             transform: scale(0.95);
         }
+
+        /* Make the template visible only when rendering PDF */
+#pdf-template {
+  display: block !important;
+  background: white;
+}
+
+/* Define A4 pages with margins */
+@page {
+  size: A4 portrait;
+  margin: 20mm 15mm;
+}
+
+/* Prevent page‑breaks inside each day block */
+.page-break-inside-avoid {
+  break-inside: avoid;
+}
+
     </style>
 
         <!-- Preconnect to speed up font loading -->
@@ -335,6 +353,40 @@
             </div>
         </section>
     </main>
+
+    <!-- ─── PDF TEMPLATE (hidden) ─── -->
+    <div id="pdf-template" class="hidden p-8 bg-white text-gray-900 font-sans">
+      <!-- Header -->
+      <header class="flex items-center mb-6 border-b pb-4">
+        <img src="/logo.png" alt="GymPlan.fit Logo" class="h-12 mr-4">
+        <div>
+          <h1 class="text-2xl font-bold">GymPlan.fit</h1>
+          <p class="text-sm text-gray-600">Generated: <span id="pdf-date"></span></p>
+        </div>
+      </header>
+
+      <!-- Workout Days -->
+      <section class="space-y-8">
+        <!-- Repeat this block for each day -->
+        <article class="page-break-inside-avoid">
+          <h2 class="text-xl font-semibold mb-3">Day 1: Push (Chest, Shoulders, Triceps)</h2>
+          <ul class="space-y-2">
+            <li>
+              <strong>Dumbbell Bench Press</strong> – 3×8 @ 75s rest
+              <p class="text-sm text-gray-600 italic">Focus on controlled movement.</p>
+            </li>
+            <!-- …other exercises -->
+          </ul>
+        </article>
+        <!-- /Repeat -->
+      </section>
+
+      <!-- Footer -->
+      <footer class="fixed bottom-0 left-0 w-full text-center text-xs text-gray-500 py-4">
+        <span class="pageNumber"></span> / <span class="totalPages"></span>
+      </footer>
+    </div>
+    <!-- ─── end PDF TEMPLATE ─── -->
     
     <!-- Footer -->
     <footer class="bg-gray-900 text-center py-8">
@@ -773,11 +825,47 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
         }
 
         // --- Utility Functions ---
-        function downloadPDF() {
-            if (!currentPlanData) {
-                alert("Please generate a plan first!");
-                return;
-            }
+      function downloadPDF() {
+  if (!currentPlanData) {
+    alert("Please generate a plan first!");
+    return;
+  }
+
+  // 1) Populate the date
+  document.getElementById('pdf-date').textContent = new Date().toLocaleDateString();
+
+  // 2) Fill in each day’s block
+  const container = document.querySelector('#pdf-template section');
+  container.innerHTML = '';
+  currentPlanData.plan.forEach(day => {
+    const article = document.createElement('article');
+    article.className = 'page-break-inside-avoid';
+    article.innerHTML = `
+      <h2 class="text-xl font-semibold mb-3">${day.day}: ${day.focus}</h2>
+      <ul class="space-y-2">
+        ${day.exercises.map(ex => `
+          <li>
+            <strong>${ex.name}</strong> – ${ex.sets}×${ex.reps} @ ${ex.rest_seconds}s rest
+            <p class="text-sm italic">${ex.notes || ''}</p>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+    container.appendChild(article);
+  });
+
+  // 3) Render and save with html2pdf
+  html2pdf()
+    .set({
+      margin:       [10,10,20,10],
+      filename:     'GymPlan.pdf',
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    })
+    .from(document.getElementById('pdf-template'))
+    .save();
+}
+
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
