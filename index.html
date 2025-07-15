@@ -613,10 +613,6 @@ Return a single valid JSON object like this:
             planDetailsContainer.innerHTML = '';
             nutritionSection.innerHTML = '';
 
-            if (summary && summary.adjustments && summary.adjustments.length > 0 && summary.adjustments[0] && summary.adjustments[0].toLowerCase() !== 'none') {
-                planDetailsContainer.innerHTML += `<div class="col-span-full mb-8 bg-blue-900/50 border border-blue-500 rounded-xl p-6"><h3 class="text-2xl font-bold text-white mb-3">Why This Workout?</h3><p class="text-gray-300">${summary.adjustments.join('. ')}</p></div>`;
-            }
-
             plan.forEach((day, dayIndex) => {
                 const exercisesHtml = day.exercises.map((ex, exIndex) => `
                     <li class="py-3 border-b border-gray-700 last:border-b-0">
@@ -700,22 +696,6 @@ Return a single valid JSON object like this:
             doc.setFont("helvetica", "bold");
             doc.text("GymPlan.fit", pageMargin, y);
             y += 10;
-
-            // Rationale
-            if (summary && summary.adjustments) {
-                doc.setFontSize(14);
-                doc.setFont("helvetica", "bold");
-                doc.text("Your Plan Rationale", pageMargin, y);
-                y += 7;
-                doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-                const rationaleLines = doc.splitTextToSize(summary.adjustments.join('. '), usableWidth);
-                doc.text(rationaleLines, pageMargin, y);
-                y += (rationaleLines.length * 5) + 5;
-                doc.setDrawColor(200);
-                doc.line(pageMargin, y, pageWidth - pageMargin, y);
-                y += 10;
-            }
 
             // Daily Plans
             plan.forEach(day => {
