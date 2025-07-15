@@ -569,50 +569,124 @@ You are a certified strength coach, exercise physiologist and nutrition expert.
 "If training_split = 'Upper/Lower' then DAY 1 = Upper, DAY 2 = Lower, DAY 3 = Upper, etc. — no exceptions."  
 
 
-
----  
-**USER INPUTS**  
-• days_per_week = ${data.days}  
-• goal           = ${JSON.stringify(data.goal)}  
-• equipment      = ${JSON.stringify(data.equipment)}  
-• training_split = ${JSON.stringify(data.style || 'Not specified')}  
-• limitations    = ${JSON.stringify(data.limitations || 'None')}  
-
----  
-**OUTPUT**  
-Return _only_ JSON with this structure:
+-------------------
+✅ OUTPUT FORMAT:
+Return a single valid JSON object like this:
 
 {
-  "plan": [
+  "plan": [ 
     {
       "day": "Day 1",
-      "focus": "${data.style === 'Upper/Lower' ? 'Upper' : '…'}",
-      "exercises": [ … ],
-      "cardio": { … }
+      "focus": "Pull (Back, Biceps)",
+      "exercises": [
+        {
+          "name": "Dumbbell Bent-Over Row",
+          "sets": 3,
+          "reps": 10,
+          "rest_seconds": 60,
+          "notes": "Use moderate weight. Avoid jerking motion."
+        },
+        ...
+      ],
+      "cardio": {
+        "type": "MISS – Incline Walk",
+        "duration_minutes": 30,
+        "intensity": "Moderate (RPE 6/10)",
+        "timing": "Post-weight training",
+        "notes": "Supports fat loss via steady-state effort. Avoid incline >6° if knee discomfort persists."
+      }
     },
-    {
-      "day": "Day 2",
-      "focus": "${data.style === 'Upper/Lower' ? 'Lower' : '…'}",
-      …
-    },
-    // … repeat/fill out exactly ${data.days} entries, alternating Upper/Lower
+    ...
   ],
-  "meals": { … },
+  "meals": {
+    "daily_calories": 2100,
+    "macros": {
+      "protein_g": 160,
+      "carbs_g": 180,
+      "fats_g": 70
+    },
+    "meals": [
+      {
+        "name": "Meal 1 – High Protein Breakfast",
+        "items": [
+          "3 boiled eggs",
+          "1 slice whole grain toast",
+          "Half an avocado",
+          "1 cup black coffee or tea"
+        ]
+      },
+      {
+        "name": "Meal 2 – Post Workout",
+        "items": [
+          "1 scoop whey protein with water",
+          "1 banana"
+        ]
+      },
+      ...
+    ]
+  },
   "summary": {
-    "goal": ${JSON.stringify(data.goal)},
-    "style": ${JSON.stringify(data.style)},
-    "days_per_week": ${data.days},
-    "equipment_used": [ ${JSON.stringify(data.equipment)} ],
-    "adjustments": [ ${JSON.stringify(data.limitations)} ],
+    "goal": "Fat Loss",
+    "style": "Push/Pull/Legs",
+    "days_per_week": 5,
+    "volume_type": "Low volume, high intensity",
+    "equipment_used": ["Dumbbells", "Resistance Bands"],
+    "adjustments": ["Avoid deep lunges due to mild knee discomfort", "No jumping movements"],
     "user_profile": {
-      "sex": ${JSON.stringify(data.gender)},
-      "weight_kg": ${data.weight},
-      "height_cm": ${data.height}
+      "sex": "Male",
+      "age": 28,
+      "weight_kg": 82
     }
   }
 }
-`;
+-------------------
 
+✅ LOGIC RULES:
+
+1. **Match frequency** to days_per_week. Spread body parts evenly per selected style (e.g., Push/Pull/Legs).
+2. **Goal-specific logic:**
+   - **Fat Loss** → High-effort compound lifts, short rest (45–90 sec), moderate rep range (6–10), post-workout cardio (MISS or light HIIT)
+   - **Muscle Gain** → 3–5 sets of 6–8 reps, high intensity (75–90% 1RM), optional 15–30 min cardio (walking)
+   - **Strength** → 3–5 reps, long rest (2–4 min), compound priority
+3. Always begin with **compound lifts**, followed by isolation
+4. Use only **available equipment**
+5. Respect **injury notes**:
+   - If user mentions "knee discomfort" → Avoid lunges, deep squats, box jumps; use glute bridges, Romanian deadlifts, etc.
+   - If "shoulder injury" → Avoid overhead presses, lateral raises; use neutral-grip pushups, landmine press alternatives
+6. Honor **additional user notes** (e.g., “short on time” → superset, full body; “early morning” → fewer warmups)
+7. Include **cardio per day**:
+   - Goal = "Fat Loss": 20–40 mins post-resistance
+   - Goal = "Muscle Gain": Optional 15–30 mins light walking
+   - Include type, duration, timing, and RPE or zone
+8. Nutrition logic:
+   - Use **Mifflin-St Jeor formula** as base for daily calories
+   - Set macros as:
+     - **Protein**: 1.8–2.2g/kg for fat loss, 2–2.5g/kg for muscle gain
+     - **Fats**: 25–30% total calories
+     - **Carbs**: Remaining cals
+   - Provide 4–5 meals/day, clean and realistic options (no gimmicks)
+9. Never repeat the same exercise in the same week
+10. Return **only valid JSON**, no explanations, markdown, or commentary
+
+-------------------
+
+✅ INPUT VARIABLES TO BE INJECTED:
+- sex: "Male"
+- age: 28
+- weight_kg: 82
+- days_per_week: 5
+- goal: "Fat Loss"
+- equipment: ["Dumbbells", "Resistance Bands"]
+- style: "Push/Pull/Legs"
+- notes: "Mild knee discomfort on lunges. Short on time midweek. Prefer early morning sessions."
+
+-------------------
+
+✅ FINAL OUTPUT MUST BE:
+- Structurally identical to the template above
+- Lean, efficient, and implementable
+- JSON only – no wrapping text or markdown formatting
+;
 
 
                 let resultText = await callGeminiAPI(prompt);
