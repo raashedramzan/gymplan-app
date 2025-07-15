@@ -132,23 +132,7 @@
             transform: scale(0.95);
         }
 
-        /* Make the template visible only when rendering PDF */
-#pdf-template {
-  display: block !important;
-  background: white;
-}
-
-/* Define A4 pages with margins */
-@page {
-  size: A4 portrait;
-  margin: 20mm 15mm;
-}
-
-/* Prevent page‑breaks inside each day block */
-.page-break-inside-avoid {
-  break-inside: avoid;
-}
-
+        
     </style>
 
         <!-- Preconnect to speed up font loading -->
@@ -825,47 +809,11 @@ Your job is to return a fully customized **weekly training and meal plan**, buil
         }
 
         // --- Utility Functions ---
-      function downloadPDF() {
-  if (!currentPlanData) {
-    alert("Please generate a plan first!");
-    return;
-  }
-
-  // 1) Populate the date
-  document.getElementById('pdf-date').textContent = new Date().toLocaleDateString();
-
-  // 2) Fill in each day’s block
-  const container = document.querySelector('#pdf-template section');
-  container.innerHTML = '';
-  currentPlanData.plan.forEach(day => {
-    const article = document.createElement('article');
-    article.className = 'page-break-inside-avoid';
-    article.innerHTML = `
-      <h2 class="text-xl font-semibold mb-3">${day.day}: ${day.focus}</h2>
-      <ul class="space-y-2">
-        ${day.exercises.map(ex => `
-          <li>
-            <strong>${ex.name}</strong> – ${ex.sets}×${ex.reps} @ ${ex.rest_seconds}s rest
-            <p class="text-sm italic">${ex.notes || ''}</p>
-          </li>
-        `).join('')}
-      </ul>
-    `;
-    container.appendChild(article);
-  });
-
-  // 3) Render and save with html2pdf
-  html2pdf()
-    .set({
-      margin:       [10,10,20,10],
-      filename:     'GymPlan.pdf',
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    })
-    .from(document.getElementById('pdf-template'))
-    .save();
-}
-
+        function downloadPDF() {
+            if (!currentPlanData) {
+                alert("Please generate a plan first!");
+                return;
+            }
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
