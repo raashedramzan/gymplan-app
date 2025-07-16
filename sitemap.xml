@@ -8,5 +8,16 @@
     <loc>https://gymplan.fit/about</loc>
     <priority>0.8</priority>
   </url>
-  <!-- Add other pages here -->
+  <url>
+    <loc>https://gymplan.fit/plan</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://gymplan.fit/contact</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://gymplan.fit/privacy</loc>
+    <priority>0.7</priority>
+  </url>
 </urlset>
