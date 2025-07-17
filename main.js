@@ -423,31 +423,19 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         let y = margin;
 
         // --- Helper Functions ---
-        function addPageHeader() {
-            doc.setFont("times", "bold").setFontSize(12).setTextColor(0);
-            doc.text("===================================================", pageWidth / 2, y, { align: "center" });
-            y += 7;
-            doc.setFontSize(18).setTextColor(accent.r, accent.g, accent.b);
-            doc.text("\uD83D\uDCC4 GYMPLAN", pageWidth / 2, y, { align: "center" });
-            y += 8;
-            doc.setFontSize(12).setTextColor(0);
-            doc.text("Your AI-Powered Custom Workout Plan", pageWidth / 2, y, { align: "center" });
-            y += 7;
-            doc.text("===================================================", pageWidth / 2, y, { align: "center" });
-            y += 10;
-        }
         function addSeparator(extra = 0) {
-            doc.setFont("times", "normal").setFontSize(11).setTextColor(150);
-            doc.text("\u2500".repeat(40), margin, y, { baseline: "top" });
+            doc.setDrawColor(180);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
             y += 6 + extra;
         }
         function checkPageBreak(linesNeeded = 10) {
             if (y > pageHeight - linesNeeded) {
                 doc.addPage();
                 y = margin;
-                addPageHeader();
             }
         }
+
         // --- Cover Page (logo) ---
         doc.setFillColor(light.r, light.g, light.b);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
@@ -463,57 +451,56 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, y + 70, { align: "center" });
         doc.addPage();
         y = margin;
-        addPageHeader();
 
         // --- User Profile & Plan Settings ---
-        doc.setFont("times", "bold").setFontSize(14).setTextColor(accent.r, accent.g, accent.b);
-        doc.text("\uD83D\uDC64 User Profile", margin, y);
-        y += 7;
+        doc.setFont("times", "bold").setFontSize(16).setTextColor(accent.r, accent.g, accent.b);
+        doc.text("User Profile", margin, y);
+        y += 8;
         addSeparator();
         doc.setFont("times", "normal").setFontSize(12).setTextColor(0);
         if (summary && summary.user_profile) {
             const up = summary.user_profile;
-            doc.text(`Gender     : ${up.sex || ''}`, margin, y); y += 6;
-            doc.text(`Weight     : ${up.weight_kg ? up.weight_kg + ' kg' : ''}`, margin, y); y += 8;
+            doc.text(`Gender: ${up.sex || ''}`, margin, y); y += 6;
+            doc.text(`Weight: ${up.weight_kg ? up.weight_kg + ' kg' : ''}`, margin, y); y += 8;
         }
-        doc.setFont("times", "bold").setFontSize(14).setTextColor(accent.r, accent.g, accent.b);
-        doc.text("\uD83C\uDFAF Goal Settings", margin, y);
-        y += 7;
+        doc.setFont("times", "bold").setFontSize(16).setTextColor(accent.r, accent.g, accent.b);
+        doc.text("Goal Settings", margin, y);
+        y += 8;
         addSeparator();
         doc.setFont("times", "normal").setFontSize(12).setTextColor(0);
         if (summary) {
-            doc.text(`Goal             : ${summary.goal || ''}`, margin, y); y += 6;
-            doc.text(`Training Split   : ${summary.style || ''}`, margin, y); y += 6;
-            doc.text(`Days per Week    : ${summary.days_per_week || ''}`, margin, y); y += 6;
-            doc.text(`Equipment Access : ${(summary.equipment_used || []).join(', ')}`, margin, y); y += 8;
+            doc.text(`Goal: ${summary.goal || ''}`, margin, y); y += 6;
+            doc.text(`Training Split: ${summary.style || ''}`, margin, y); y += 6;
+            doc.text(`Days per Week: ${summary.days_per_week || ''}`, margin, y); y += 6;
+            doc.text(`Equipment Access: ${(summary.equipment_used || []).join(', ')}`, margin, y); y += 8;
         }
         addSeparator(2);
 
         // --- Days/Workouts ---
         plan.forEach((day, dayIdx) => {
             checkPageBreak(30);
-            doc.setFont("times", "bold").setFontSize(14).setTextColor(accent.r, accent.g, accent.b);
-            doc.text(`\uD83D\uDCC5 DAY ${dayIdx + 1} – ${day.focus}`, margin, y);
-            y += 7;
+            doc.setFont("times", "bold").setFontSize(15).setTextColor(accent.r, accent.g, accent.b);
+            doc.text(`DAY ${dayIdx + 1} – ${day.focus}`, margin, y);
+            y += 8;
             addSeparator();
             day.exercises.forEach(ex => {
                 checkPageBreak(20);
-                doc.setFont("times", "bold").setFontSize(12).setTextColor(dark.r, dark.g, dark.b);
-                doc.text(`\uD83C\uDFCB\uFE0F ${ex.name}`, margin, y);
+                doc.setFont("times", "bold").setFontSize(13).setTextColor(dark.r, dark.g, dark.b);
+                doc.text(ex.name, margin, y);
                 y += 6;
                 doc.setFont("times", "normal").setFontSize(11).setTextColor(0);
-                doc.text(`\uD83D\uDCCA Sets x Reps: ${ex.sets} x ${ex.reps}       \uD83D\uDD52 Rest: ${ex.rest_seconds} sec`, margin + 2, y);
+                doc.text(`Sets x Reps: ${ex.sets} x ${ex.reps}      Rest: ${ex.rest_seconds} sec`, margin + 2, y);
                 y += 5;
                 if (ex.notes) {
                     doc.setFont("times", "italic").setFontSize(10).setTextColor(0);
-                    doc.text(`\uD83E\uDDE0 Tip: ${ex.notes}`, margin + 2, y);
+                    doc.text(`Tip: ${ex.notes}`, margin + 2, y);
                     y += 5;
                 }
                 if (ex.instructions && ex.instructions.length) {
                     doc.setFont("times", "normal").setFontSize(10);
                     ex.instructions.forEach((step, idx) => {
                         checkPageBreak(10);
-                        doc.text(`\u2794 ${step}`, margin + 6, y);
+                        doc.text(`- ${step}`, margin + 6, y);
                         y += 4;
                     });
                 }
@@ -522,23 +509,23 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
             // Cardio Section
             if (day.cardio) {
                 checkPageBreak(15);
-                doc.setFont("times", "bold").setFontSize(12).setTextColor(accent.r, accent.g, accent.b);
-                doc.text("\uD83D\uDCA8 Cardio Session", margin, y);
+                doc.setFont("times", "bold").setFontSize(13).setTextColor(accent.r, accent.g, accent.b);
+                doc.text("Cardio Session", margin, y);
                 y += 6;
                 addSeparator();
                 doc.setFont("times", "normal").setFontSize(11).setTextColor(0);
                 if (day.cardio.type) {
-                    doc.text(`Type      : ${day.cardio.type}`, margin, y); y += 5;
+                    doc.text(`Type: ${day.cardio.type}`, margin, y); y += 5;
                 }
                 if (day.cardio.duration_minutes) {
-                    doc.text(`Duration  : ${day.cardio.duration_minutes} minutes`, margin, y); y += 5;
+                    doc.text(`Duration: ${day.cardio.duration_minutes} minutes`, margin, y); y += 5;
                 }
                 if (day.cardio.intensity) {
-                    doc.text(`Intensity : ${day.cardio.intensity}`, margin, y); y += 5;
+                    doc.text(`Intensity: ${day.cardio.intensity}`, margin, y); y += 5;
                 }
                 if (day.cardio.notes) {
                     doc.setFont("times", "italic").setFontSize(10);
-                    doc.text(`Notes     : ${day.cardio.notes}`, margin, y); y += 5;
+                    doc.text(`Notes: ${day.cardio.notes}`, margin, y); y += 5;
                 }
                 y += 2;
             }
@@ -548,9 +535,9 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         // --- Nutrition Summary as Table ---
         if (meals && meals.macros) {
             checkPageBreak(25);
-            doc.setFont("times", "bold").setFontSize(14).setTextColor(accent.r, accent.g, accent.b);
-            doc.text("\uD83C\uDF7D\uFE0F Daily Nutrition Summary", margin, y);
-            y += 7;
+            doc.setFont("times", "bold").setFontSize(15).setTextColor(accent.r, accent.g, accent.b);
+            doc.text("Daily Nutrition Summary", margin, y);
+            y += 8;
             addSeparator();
             // Table
             const macros = meals.macros;
@@ -566,16 +553,16 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
             table.forEach((row, i) => {
                 checkPageBreak(10);
                 doc.setTextColor(accent.r, accent.g, accent.b);
-                doc.text(`| ${row[0]}`.padEnd(16), col1, y);
+                doc.text(row[0], col1, y);
                 doc.setTextColor(0);
-                doc.text(`| ${row[1]} |`, col2, y);
+                doc.text(row[1], col2, y);
                 y += 7;
             });
             addSeparator();
             doc.setFont("times", "italic").setFontSize(10).setTextColor(0);
             if (summary && summary.user_profile && macros.protein_g && summary.user_profile.weight_kg) {
                 const proteinPerKg = (macros.protein_g / summary.user_profile.weight_kg).toFixed(2);
-                doc.text(`\uD83D\uDCA1 Protein = ${proteinPerKg}g/kg (based on ${summary.user_profile.weight_kg}kg weight)`, margin, y);
+                doc.text(`Protein = ${proteinPerKg}g/kg (based on ${summary.user_profile.weight_kg}kg weight)`, margin, y);
                 y += 5;
             }
             doc.setFont("times", "normal").setFontSize(10).setTextColor(0);
@@ -586,7 +573,7 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         // --- Progress Log (Optional) ---
         checkPageBreak(25);
         doc.setFont("times", "bold").setFontSize(14).setTextColor(accent.r, accent.g, accent.b);
-        doc.text("\uD83D\uDCDD Weekly Progress Log (Optional)", margin, y);
+        doc.text("Weekly Progress Log (Optional)", margin, y);
         y += 7;
         addSeparator();
         doc.setFont("times", "bold").setFontSize(11).setTextColor(0);
