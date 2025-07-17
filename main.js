@@ -329,6 +329,10 @@ No markdown, no explanations, no extra text.
                 resultText = resultText.substring(startIndex, endIndex + 1);
             }
             const newExercise = JSON.parse(resultText);
+            // Validate newExercise structure
+            if (!newExercise.name || newExercise.rest_seconds === undefined || !Array.isArray(newExercise.instructions)) {
+                throw new Error('Malformed exercise returned by AI');
+            }
             currentPlanData.plan[dayIndex].exercises[exIndex] = newExercise;
             displayPlan(currentPlanData);
         } catch (error) {
@@ -338,6 +342,8 @@ No markdown, no explanations, no extra text.
                 msg += ' The AI response was not in the correct format.';
             } else if (error.message && error.message.includes('Function call failed')) {
                 msg += ' The AI service is currently unavailable. Please try again later.';
+            } else if (error.message && error.message.includes('Malformed exercise')) {
+                msg += ' The AI did not return a valid exercise.';
             } else {
                 msg += ' Please check your network connection and try again.';
             }
@@ -355,7 +361,10 @@ No markdown, no explanations, no extra text.
         nutritionSection.innerHTML = '';
 
         plan.forEach((day, dayIndex) => {
-            const exercisesHtml = day.exercises.map((ex, exIndex) => `
+            const exercisesHtml = day.exercises.map((ex, exIndex) => {
+                // Fallback for rest_seconds
+                let restDisplay = (ex.rest_seconds !== undefined && ex.rest_seconds !== null && ex.rest_seconds !== '' && ex.rest_seconds !== 'undefined') ? `${ex.rest_seconds}s` : 'N/A';
+                return `
                 <li class="py-3 border-b border-gray-700 last:border-b-0 transition-all duration-300">
                     <div class="flex justify-between items-center gap-2 flex-wrap">
                         <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal" aria-label="View instructions for ${ex.name}">(view instructions)</button></span>
@@ -364,8 +373,9 @@ No markdown, no explanations, no extra text.
                            <button onclick="swapExercise(${dayIndex}, ${exIndex}, this)" class="text-xs bg-gray-600 hover:bg-gray-500 rounded-full px-2 py-1 transition" aria-label="Swap exercise">Swap</button>
                         </div>
                     </div>
-                    <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
-                </li>`).join('');
+                    <p class="text-sm text-gray-400 mt-1">Rest: ${restDisplay}. ${ex.notes || ''}</p>
+                </li>`;
+            }).join('');
             planDetailsContainer.innerHTML += `<div class="plan-card transition-all duration-500"><h4 class="text-xl font-bold text-blue-400">${day.day}</h4><h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
         });
 
@@ -403,16 +413,22 @@ No markdown, no explanations, no extra text.
         if (!currentPlanData) return;
         const exercise = currentPlanData.plan[dayIndex].exercises[exIndex];
         modalTitle.textContent = exercise.name;
-        const videoQuery = encodeURIComponent(exercise.youtube_search_query);
+        const videoQuery = encodeURIComponent(exercise.youtube_search_query || exercise.name);
         modalVideo.src = `https://www.youtube.com/embed?listType=search&list=${videoQuery}`;
         youtubeLink.href = `https://www.youtube.com/results?search_query=${videoQuery}`;
-        modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
+        // Robust instructions handling
+        if (Array.isArray(exercise.instructions) && exercise.instructions.length > 0) {
+            modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
+        } else {
+            modalInstructions.innerHTML = '<li>No instructions available.</li>';
+        }
         exerciseModal.classList.remove('hidden');
         // Accessibility: trap focus
         lastFocusedElement = document.activeElement;
         trapModalFocus();
         setTimeout(() => {
-            exerciseModal.querySelector('button[aria-label="Close Exercise Details Modal"]').focus();
+            const closeBtn = exerciseModal.querySelector('button[aria-label="Close Exercise Details Modal"]');
+            if (closeBtn) closeBtn.focus();
         }, 100);
     }
 
@@ -457,8 +473,8 @@ No markdown, no explanations, no extra text.
 
     // --- Utility Functions ---
     window.downloadPDF = function() {
-        if (!currentPlanData) {
-            alert("Please generate a plan first!");
+        if (!currentPlanData || !currentPlanData.plan || !Array.isArray(currentPlanData.plan) || currentPlanData.plan.length === 0) {
+            alert("No plan data available. Please generate a plan first.");
             return;
         }
 
