@@ -45,16 +45,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalInstructions = document.getElementById('modalInstructions');
     const youtubeLink = document.getElementById('youtubeLink');
 
+    // --- Utility: Manage Required Attributes for Visible Step ---
+    function updateRequiredAttributes() {
+        // Remove 'required' from all inputs
+        const allRequired = form.querySelectorAll('[required]');
+        allRequired.forEach(input => input.removeAttribute('required'));
+        // Add 'required' only to visible step's required fields
+        const currentStepElement = document.getElementById(`step-${currentStep}`);
+        if (currentStepElement) {
+            const visibleRequired = currentStepElement.querySelectorAll('[data-always-required]');
+            visibleRequired.forEach(input => input.setAttribute('required', 'required'));
+        }
+    }
+
     // --- Form Initialization ---
     function initializeForm() {
         trainingDaysContainer.innerHTML = trainingDaysData.map(day => `
-            <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" required><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Training days option for ${day} days">${day}</label></div>`).join('');
+            <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" data-always-required><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Training days option for ${day} days">${day}</label></div>`).join('');
         mainGoalContainer.innerHTML = mainGoalsData.map(goal => `
-            <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Main goal option for ${goal}">${goal}</label></div>`).join('');
+            <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" data-always-required><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Main goal option for ${goal}">${goal}</label></div>`).join('');
         equipmentContainer.innerHTML = equipmentData.map(equip => `
-            <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Equipment option for ${equip}">${equip}</label></div>`).join('');
+            <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" data-always-required><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Equipment option for ${equip}">${equip}</label></div>`).join('');
         genderContainer.innerHTML = genderData.map(gender => `
-            <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer" required><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Gender option for ${gender}">${gender}</label></div>`).join('');
+            <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer" data-always-required><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Gender option for ${gender}">${gender}</label></div>`).join('');
+        // After rendering, update required attributes for the first step
+        updateRequiredAttributes();
     }
     initializeForm();
 
@@ -101,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentStep = step;
             document.getElementById(`step-${currentStep}`).classList.add('active');
             updateProgressBar();
+            updateRequiredAttributes();
         }
     }
 
@@ -109,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentStep = step;
         document.getElementById(`step-${currentStep}`).classList.add('active');
         updateProgressBar();
+        updateRequiredAttributes();
     }
 
     function updateProgressBar() {
@@ -138,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
 
+    // On editInputs, also update required attributes
     window.editInputs = function() {
         planOutputSection.classList.add('hidden');
         planGeneratorSection.classList.remove('hidden');
@@ -160,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
+        updateRequiredAttributes();
     }
 
     // --- Form Submission & API Call ---
