@@ -211,6 +211,12 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
   - For maintenance: calories at maintenance, balanced macros.
 - Do NOT return a generic plan. Every aspect must be personalized to the user's selections and notes.
 
+✅ REQUIRED FIELDS (MANDATORY):
+- For each day: include 'day' (string), 'focus' (string), and 'exercises' (array, at least one).
+- For each exercise: include 'name', 'sets', 'reps', 'rest_seconds', 'notes', 'youtube_search_query', 'instructions' (array, at least 3 steps).
+- The 'meals' object MUST include a 'macros' object with 'protein_g', 'carbs_g', 'fats_g', and 'daily_calories' (all numbers).
+- Never return undefined, null, or omit any required field. If a value is unknown, use a reasonable default.
+
 ✅ LOGIC RULES:
 1.  **Workout Plan:** For each exercise, include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
 2.  **Nutrition logic:** Use **Mifflin-St Jeor formula** as a base for daily calories. Set macros as: **Protein**: 1.8–2.2g/kg for fat loss, 2–2.5g/kg for muscle gain; **Fats**: 25–30% total calories; **Carbs**: Remaining cals.
@@ -329,18 +335,25 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         nutritionSection.innerHTML = '';
 
         plan.forEach((day, dayIndex) => {
-            const exercisesHtml = day.exercises.map((ex, exIndex) => `
-                <li class="py-3 border-b border-gray-700 last:border-b-0 transition-all duration-300">
-                    <div class="flex justify-between items-center gap-2 flex-wrap">
-                        <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal" aria-label="View instructions for ${ex.name}">(view instructions)</button></span>
-                        <div class="flex items-center gap-4 flex-shrink-0">
-                           <p class="text-blue-400 font-semibold text-right whitespace-nowrap">${ex.sets} x ${ex.reps} reps</p>
-                           <button onclick="swapExercise(${dayIndex}, ${exIndex}, this)" class="text-xs bg-gray-600 hover:bg-gray-500 rounded-full px-2 py-1 transition" aria-label="Swap exercise">Swap</button>
+            const dayFocus = day.focus || 'No focus specified';
+            const exercises = Array.isArray(day.exercises) ? day.exercises : [];
+            let exercisesHtml = '';
+            if (exercises.length > 0) {
+                exercisesHtml = exercises.map((ex, exIndex) => `
+                    <li class="py-3 border-b border-gray-700 last:border-b-0 transition-all duration-300">
+                        <div class="flex justify-between items-center gap-2 flex-wrap">
+                            <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal" aria-label="View instructions for ${ex.name}">(view instructions)</button></span>
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                               <p class="text-blue-400 font-semibold text-right whitespace-nowrap">${ex.sets} x ${ex.reps} reps</p>
+                               <button onclick="swapExercise(${dayIndex}, ${exIndex}, this)" class="text-xs bg-gray-600 hover:bg-gray-500 rounded-full px-2 py-1 transition" aria-label="Swap exercise">Swap</button>
+                            </div>
                         </div>
-                    </div>
-                    <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
-                </li>`).join('');
-            planDetailsContainer.innerHTML += `<div class="plan-card transition-all duration-500"><h4 class="text-xl font-bold text-blue-400">${day.day}</h4><h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
+                        <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
+                    </li>`).join('');
+            } else {
+                exercisesHtml = '<li class="text-gray-400">No exercises specified.</li>';
+            }
+            planDetailsContainer.innerHTML += `<div class="plan-card transition-all duration-500"><h4 class="text-xl font-bold text-blue-400">${day.day || ''}</h4><h5 class="text-lg font-semibold mb-4 text-white">${dayFocus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
         });
 
         if (meals && meals.macros) {
@@ -351,25 +364,29 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
                     <div class="grid grid-cols-1 gap-6 text-center">
                         <div class="bg-gray-800 p-6 rounded-xl">
                             <p class="text-lg text-gray-400">Calories</p>
-                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories} kcal</p>
+                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories || 'N/A'} kcal</p>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Protein</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.protein_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.protein_g !== undefined ? macros.protein_g + 'g' : 'N/A'}</p>
                             </div>
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Carbs</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.carbs_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.carbs_g !== undefined ? macros.carbs_g + 'g' : 'N/A'}</p>
                             </div>
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Fats</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.fats_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.fats_g !== undefined ? macros.fats_g + 'g' : 'N/A'}</p>
                             </div>
                         </div>
                     </div>
                 </div>`;
+        } else {
+            nutritionSection.innerHTML = `<div class='nutrition-card mt-12 text-center text-red-400'>Nutrition data unavailable.</div>`;
         }
+        // Log raw AI response for debugging
+        console.log('Raw AI plan data:', data);
     }
 
     // --- Modal Functions ---
