@@ -382,6 +382,7 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
                             </div>
                         </div>
                     </div>
+                    <small class="block mt-2 text-xs text-gray-400">These macros are calculated based on your goal, weight, and evidence-based guidelines for optimal results.</small>
                 </div>`;
         } else {
             nutritionSection.innerHTML = `<div class='nutrition-card mt-12 text-center text-red-400'>Nutrition data unavailable.</div>`;
