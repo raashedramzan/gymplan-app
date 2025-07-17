@@ -190,19 +190,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loader
         try {
             const prompt = `
-You are a certified strength and conditioning coach, clinical exercise physiologist, and precision nutrition expert. Your job is to return a fully customized **weekly training and meal plan**, built around the user's input. The response must be **strictly formatted** as a valid JSON object. No markdown, no text, no headers — only JSON.
+You are a certified strength and conditioning coach, clinical exercise physiologist, and precision nutrition expert. Your job is to return a fully customized weekly training and meal plan, built around the user's input. The response must be strictly formatted as a valid JSON object. No markdown, no text, no headers — only JSON.
 
 -------------------
 ✅ JSON STRUCTURE (Strictly Follow):
 {
-  "plan": [ { "day": "Day 1", "focus": "Pull (Back, Biceps)", "exercises": [ { "name": "Dumbbell Bent-Over Row", "sets": 3, "reps": 10, "rest_seconds": 60, "notes": "Use moderate weight. Avoid jerking motion.", "youtube_search_query": "how to do dumbbell bent over row", "instructions": ["Hinge at your hips, keeping your back straight.", "Pull the dumbbells towards your lower chest.", "Squeeze your back muscles at the top."] } ], "cardio": { "type": "MISS – Incline Walk", "duration_minutes": 30, "intensity": "Moderate (RPE 6/10)", "timing": "Post-weight training", "notes": "Supports fat loss via steady-state effort." } } ],
-  "meals": { "daily_calories": 2100, "macros": { "protein_g": 160, "carbs_g": 180, "fats_g": 70 } },
-  "summary": { "goal": "Fat Loss", "style": "Push/Pull/Legs", "days_per_week": 5, "volume_type": "Low volume, high intensity", "equipment_used": ["Dumbbells", "Resistance Bands"], "adjustments": ["Avoid deep lunges due to mild knee discomfort"], "user_profile": { "sex": "Male", "weight_kg": 82 } }
+  "plan": [ ... ],
+  "meals": { ... },
+  "summary": { ... }
 }
 -------------------
 
+✅ PERSONALIZATION RULES (MANDATORY):
+- You MUST use ALL user inputs to fully tailor the plan and macros: goal, training style, equipment, gender, weight, height, days per week, and any limitations or injuries.
+- If the user selects "Science-Based", all recommendations must be research-backed and evidence-based (e.g., cite ACSM, ISSN, Schoenfeld, Helms, etc. in your logic, not in the output).
+- If the user has an injury or limitation, you MUST reflect this in the plan (avoid or modify exercises as needed, and mention modifications in notes).
+- The plan and macros MUST always match the user's goal:
+  - For fat loss: calories must be in a deficit, macros must support muscle retention.
+  - For muscle gain: calories must be in a surplus, macros must support hypertrophy.
+  - For maintenance: calories at maintenance, balanced macros.
+- Do NOT return a generic plan. Every aspect must be personalized to the user's selections and notes.
+
 ✅ LOGIC RULES:
-1.  **Workout Plan:** For each exercise, you MUST include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
+1.  **Workout Plan:** For each exercise, include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
 2.  **Nutrition logic:** Use **Mifflin-St Jeor formula** as a base for daily calories. Set macros as: **Protein**: 1.8–2.2g/kg for fat loss, 2–2.5g/kg for muscle gain; **Fats**: 25–30% total calories; **Carbs**: Remaining cals.
 3.  Return **only valid JSON**, no explanations, markdown, or commentary.
 
