@@ -633,4 +633,36 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
 
         doc.save("GymPlan.pdf");
     }
+
+    // --- Keyboard Navigation for Enter Key ---
+    document.addEventListener('keydown', function(event) {
+        // Only act if Enter is pressed and not Shift+Enter (which should insert a newline in textarea)
+        if (event.key === 'Enter' && !event.shiftKey) {
+            const active = document.activeElement;
+            // If in a textarea, only move if not Shift+Enter
+            if (active && (active.tagName === 'INPUT' || (active.tagName === 'TEXTAREA' && !event.shiftKey))) {
+                // Find the current step
+                const currentStepElement = document.querySelector('.form-step.active');
+                if (currentStepElement) {
+                    // Prevent default Enter behavior (like submitting form)
+                    event.preventDefault();
+                    // Find the step number
+                    const stepId = currentStepElement.id;
+                    const match = stepId && stepId.match(/step-(\d+)/);
+                    if (match) {
+                        const stepNum = parseInt(match[1], 10);
+                        // Only move to next step if not the last step
+                        if (stepNum < totalSteps) {
+                            if (validateStep(stepNum)) {
+                                window.nextStep(stepNum + 1);
+                            }
+                        } else if (stepNum === totalSteps) {
+                            // On last step, allow form submission
+                            // Do nothing, let form submit
+                        }
+                    }
+                }
+            }
+        }
+    });
 }); 
