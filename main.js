@@ -189,92 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Show loader
         try {
-            const prompt = `
-You are a certified strength and conditioning coach, clinical exercise physiologist, and precision nutrition expert. Your job is to return a fully customized weekly training and meal plan, built around the user's input. The response must be strictly formatted as a valid JSON object. No markdown, no text, no headers — only JSON.
-
--------------------
-✅ OUTPUT FORMAT:
-Return ONLY a valid JSON object, strictly matching this structure:
-{
-  "plan": [ ... ],
-  "meals": { ... },
-  "summary": { ... }
-}
-No markdown, no explanations, no extra text.
-
-✅ WORKOUT PLAN LOGIC:
-- Match all exercises, sets, reps, and rest to the user's goal, experience, and available equipment.
-- Prioritize compound lifts and safe, effective movements.
-- Include clear, step-by-step instructions for each exercise.
-- Always provide rest intervals and safety tips.
-- Respect any injuries or limitations provided by the user.
-- For each exercise, you MUST include an "instructions" field as an array of at least 3 step-by-step strings. Do not use any other type or omit this field.
-
-✅ NUTRITION LOGIC:
-- Use evidence-based formulas (e.g., Mifflin-St Jeor for calories).
-- Set protein, fat, and carb targets based on user weight, goal, and best practices (e.g., 1.8–2.2g/kg protein for fat loss).
-- Never recommend extreme or unsafe diets.
-- The "meals" object MUST include a "macros" object with "protein_g", "carbs_g", and "fats_g" as numbers. Do not omit or rename these fields.
-
-✅ PERSONALIZATION:
-- Use all user inputs: gender, weight, height, days per week, equipment, limitations, etc.
-- Adjust plan for training split, style, and user preferences.
-
-✅ SAFETY & PROFESSIONALISM:
-- Never recommend dangerous exercises or unsupervised max lifts.
-- Always include warm-up and cool-down suggestions if possible.
-- Use a positive, encouraging, but professional tone.
-
-✅ CLARITY & STRUCTURE:
-- Use clear section headings in the JSON (e.g., "plan", "meals", "summary").
-- For each exercise, include: name, sets, reps, rest, notes, instructions.
-- For each day, include: focus, exercises, optional cardio.
-
-✅ NO UNSOLICITED ADVICE:
-- Only provide what’s asked for—no extra commentary, jokes, or off-topic advice.
-
-✅ STRICT FORMATTING:
-- No markdown, no HTML, no emojis in the JSON output.
-- All instructions and notes should be plain text.
-
--------------------
-✅ GOAL-SPECIFIC LOGIC:
-- If the user selects "Muscle Gain", design the plan and macros for optimal hypertrophy: use a calorie surplus (5–15% above maintenance), high protein (2–2.5g/kg), and evidence-based training (compound lifts, progressive overload, 6–12 reps/set, 3–5 sets/exercise).
-- If the user selects "Fat Loss", design the plan and macros for fat loss: use a calorie deficit (10–25% below maintenance), high protein (1.8–2.2g/kg), and training that preserves muscle (compound lifts, moderate volume, some cardio).
-- If the user selects "Science-Based", use only methods and recommendations supported by peer-reviewed research (e.g., ACSM, ISSN, Schoenfeld et al., Helms et al.).
-- The plan and macros must always match the user's selected goal and preferences. Do NOT use generic or mismatched plans.
-
-✅ MACROS LOGIC:
-- Always calculate calories and macros based on the user's goal, weight, and activity.
-- For fat loss: calories = maintenance - 10–25%, protein = 1.8–2.2g/kg, fats = 25–30% of calories, carbs = remainder.
-- For muscle gain: calories = maintenance + 5–15%, protein = 2–2.5g/kg, fats = 20–30% of calories, carbs = remainder.
-- For maintenance: calories = maintenance, protein = 1.6–2g/kg, fats = 25–30%, carbs = remainder.
-
-✅ PERSONALIZATION (REPEAT):
-- Use all user inputs (goal, style, equipment, limitations, etc.) to fully customize the plan.
-- Do NOT include exercises or recommendations that do not fit the user's selections.
-
-✅ STRICTNESS:
-- If the user selects "science-based", reference or use only evidence-backed methods (e.g., progressive overload, periodization, research-based macro targets).
-- If the user selects "intense", increase training volume or intensity, but still within safe, evidence-based limits.
-
-✅ EXAMPLES:
-- If user goal is "Fat Loss", calories should be lower than maintenance, and the plan should include some cardio and muscle-preserving resistance training.
-- If user goal is "Muscle Gain", calories should be higher than maintenance, and the plan should focus on hypertrophy training.
-
--------------------
-
-✅ INPUT VARIABLES TO BE INJECTED:
-- sex: "${data.gender}"
-- weight_kg: ${data.weight}
-- height_cm: ${data.height}
-- age: 28
-- days_per_week: ${data.days}
-- goal: "${data.goal}"
-- equipment: ["${data.equipment}"]
-- style: "${data.style || 'Not specified, choose best fit'}"
-- notes: "${data.limitations || 'None'}"
-`;
+            // SIMPLER PROMPT (REVERTED)
+            const prompt = `Generate a personalized weekly workout and meal plan for the following user. Return ONLY a valid JSON object with three keys: plan (array of days with exercises), meals (object with macros and calories), and summary (object with user profile and settings). No markdown, no explanations, no extra text. User info: gender: ${data.gender}, weight: ${data.weight}kg, height: ${data.height}cm, days per week: ${data.days}, goal: ${data.goal}, equipment: ${data.equipment}, style: ${data.style || 'best fit'}, limitations: ${data.limitations || 'none'}`;
 
             let resultText = await callGeminiAPI(prompt);
             const startIndex = resultText.indexOf('{');
@@ -324,7 +240,8 @@ No markdown, no explanations, no extra text.
             const exerciseToSwap = currentPlanData.plan[dayIndex].exercises[exIndex];
             const formData = new FormData(form);
             const equipment = formData.get('equipment');
-            const swapPrompt = `Provide a single suitable alternative exercise for "${exerciseToSwap.name}". The user has access to a "${equipment}". Return a single valid JSON object for the new exercise, with no explanation. The JSON object must have the exact same structure as the original: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": (number, required), "notes": "...", "youtube_search_query": "...", "instructions": ["...", ...] (array of at least 3 steps, required) }. Original exercise for context: ${JSON.stringify(exerciseToSwap)}`;
+            // SIMPLER SWAP PROMPT (REVERTED)
+            const swapPrompt = `Suggest a suitable alternative exercise for "${exerciseToSwap.name}" for a user with access to "${equipment}". Return ONLY a valid JSON object with the same structure as the original exercise: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "...", "youtube_search_query": "...", "instructions": ["...", ...] }`;
             let resultText = await callGeminiAPI(swapPrompt);
             const startIndex = resultText.indexOf('{');
             const endIndex = resultText.lastIndexOf('}');
