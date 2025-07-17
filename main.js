@@ -282,6 +282,7 @@ No markdown, no explanations, no extra text.
             if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
                 resultText = resultText.substring(startIndex, endIndex + 1);
             }
+            console.log('Raw AI plan response:', resultText);
             const resultJson = JSON.parse(resultText);
             currentPlanData = resultJson;
             displayPlan(resultJson);
@@ -323,18 +324,28 @@ No markdown, no explanations, no extra text.
             const exerciseToSwap = currentPlanData.plan[dayIndex].exercises[exIndex];
             const formData = new FormData(form);
             const equipment = formData.get('equipment');
-            const swapPrompt = `Provide a single suitable alternative exercise for "${exerciseToSwap.name}". The user has access to a "${equipment}". Return a single valid JSON object for the new exercise, with no explanation. The JSON object must have the exact same structure as the original: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "...", "youtube_search_query": "...", "instructions": ["..."] }. Original exercise for context: ${JSON.stringify(exerciseToSwap)}`;
+            const swapPrompt = `Provide a single suitable alternative exercise for "${exerciseToSwap.name}". The user has access to a "${equipment}". Return a single valid JSON object for the new exercise, with no explanation. The JSON object must have the exact same structure as the original: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": (number, required), "notes": "...", "youtube_search_query": "...", "instructions": ["...", ...] (array of at least 3 steps, required) }. Original exercise for context: ${JSON.stringify(exerciseToSwap)}`;
             let resultText = await callGeminiAPI(swapPrompt);
             const startIndex = resultText.indexOf('{');
             const endIndex = resultText.lastIndexOf('}');
             if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
                 resultText = resultText.substring(startIndex, endIndex + 1);
             }
-            const newExercise = JSON.parse(resultText);
-            // Validate newExercise structure
-            if (!newExercise.name || newExercise.rest_seconds === undefined || !Array.isArray(newExercise.instructions)) {
+            console.log('Raw AI swap response:', resultText);
+            let newExercise = {};
+            try {
+                newExercise = JSON.parse(resultText);
+            } catch (e) {
                 throw new Error('Malformed exercise returned by AI');
             }
+            // Validate and fill missing fields
+            if (!newExercise.name) throw new Error('Malformed exercise returned by AI');
+            if (newExercise.rest_seconds === undefined || newExercise.rest_seconds === null || isNaN(Number(newExercise.rest_seconds))) newExercise.rest_seconds = 60;
+            if (!Array.isArray(newExercise.instructions) || newExercise.instructions.length < 1) newExercise.instructions = ["See video for steps."];
+            if (!('sets' in newExercise)) newExercise.sets = exerciseToSwap.sets || 3;
+            if (!('reps' in newExercise)) newExercise.reps = exerciseToSwap.reps || 10;
+            if (!('notes' in newExercise)) newExercise.notes = '';
+            if (!('youtube_search_query' in newExercise)) newExercise.youtube_search_query = newExercise.name;
             currentPlanData.plan[dayIndex].exercises[exIndex] = newExercise;
             displayPlan(currentPlanData);
         } catch (error) {
@@ -342,7 +353,6 @@ No markdown, no explanations, no extra text.
             let msg = 'Could not swap the exercise.';
             if (error.message && error.message.includes('Failed to parse')) {
                 msg += ' The AI response was not in the correct format.';
-            } else if (error.message && error.message.includes('Function call failed')) {
                 msg += ' The AI service is currently unavailable. Please try again later.';
             } else if (error.message && error.message.includes('Malformed exercise')) {
                 msg += ' The AI did not return a valid exercise.';
@@ -365,9 +375,8 @@ No markdown, no explanations, no extra text.
         plan.forEach((day, dayIndex) => {
             const exercisesHtml = day.exercises.map((ex, exIndex) => {
                 // Fallback for rest_seconds
-                let restDisplay = (ex.rest_seconds !== undefined && ex.rest_seconds !== null && ex.rest_seconds !== '' && ex.rest_seconds !== 'undefined') ? `${ex.rest_seconds}s` : 'N/A';
+                let restDisplay = (ex.rest_seconds !== undefined && ex.rest_seconds !== null && ex.rest_seconds !== '' && ex.rest_seconds !== 'undefined' && !isNaN(Number(ex.rest_seconds))) ? `${ex.rest_seconds}s` : 'N/A';
                 return `
-                <li class="py-3 border-b border-gray-700 last:border-b-0 transition-all duration-300">
                     <div class="flex justify-between items-center gap-2 flex-wrap">
                         <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal" aria-label="View instructions for ${ex.name}">(view instructions)</button></span>
                         <div class="flex items-center gap-4 flex-shrink-0">
@@ -390,7 +399,7 @@ No markdown, no explanations, no extra text.
                     <div class="grid grid-cols-1 gap-6 text-center">
                         <div class="bg-gray-800 p-6 rounded-xl">
                             <p class="text-lg text-gray-400">Calories</p>
-                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories || 'N/A'} kcal</p>
+                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories !== undefined ? macros.daily_calories + ' kcal' : (meals.daily_calories !== undefined ? meals.daily_calories + ' kcal' : 'N/A')}</p>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div class="bg-gray-800 p-6 rounded-xl">
