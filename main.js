@@ -414,6 +414,7 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
 
         // Layout constants
         const margin = 15;
+        const bottomMargin = 20; // Minimum space from bottom for footer
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const usableWidth = pageWidth - margin * 2;
@@ -430,7 +431,7 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
             y += 6 + extra;
         }
         function checkPageBreak(linesNeeded = 10) {
-            if (y > pageHeight - linesNeeded) {
+            if (y > pageHeight - bottomMargin - linesNeeded) {
                 doc.addPage();
                 y = margin;
             }
