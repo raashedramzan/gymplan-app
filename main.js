@@ -215,6 +215,7 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
 - For each day: include 'day' (string), 'focus' (string), and 'exercises' (array, at least one).
 - For each exercise: include 'name', 'sets', 'reps', 'rest_seconds', 'notes', 'youtube_search_query', 'instructions' (array, at least 3 steps).
 - The 'meals' object MUST include a 'macros' object with 'protein_g', 'carbs_g', 'fats_g', and 'daily_calories' (all numbers).
+- The 'summary' object MUST include: 'goal' (string, user’s selected goal), 'style' (string, user’s selected training style), 'days_per_week' (number), 'equipment_used' (array of strings), and 'user_profile' (object with 'sex', 'weight_kg', 'height_cm', and 'age'). Never omit or rename any of these fields. If a value is unknown, use the user's input or a reasonable default.
 - Never return undefined, null, or omit any required field. If a value is unknown, use a reasonable default.
 
 ✅ LOGIC RULES:
