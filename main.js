@@ -48,13 +48,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Form Initialization ---
     function initializeForm() {
         trainingDaysContainer.innerHTML = trainingDaysData.map(day => `
-            <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer"><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Training days option for ${day} days">${day}</label></div>`).join('');
+            <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" required><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Training days option for ${day} days">${day}</label></div>`).join('');
         mainGoalContainer.innerHTML = mainGoalsData.map(goal => `
-            <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer"><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Main goal option for ${goal}">${goal}</label></div>`).join('');
+            <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Main goal option for ${goal}">${goal}</label></div>`).join('');
         equipmentContainer.innerHTML = equipmentData.map(equip => `
-            <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer"><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Equipment option for ${equip}">${equip}</label></div>`).join('');
+            <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Equipment option for ${equip}">${equip}</label></div>`).join('');
         genderContainer.innerHTML = genderData.map(gender => `
-            <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer"><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Gender option for ${gender}">${gender}</label></div>`).join('');
+            <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer" required><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Gender option for ${gender}">${gender}</label></div>`).join('');
     }
     initializeForm();
 
@@ -189,8 +189,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Show loader
         try {
-            // SIMPLER PROMPT (REVERTED)
-            const prompt = `Generate a personalized weekly workout and meal plan for the following user. Return ONLY a valid JSON object with three keys: plan (array of days with exercises), meals (object with macros and calories), and summary (object with user profile and settings). No markdown, no explanations, no extra text. User info: gender: ${data.gender}, weight: ${data.weight}kg, height: ${data.height}cm, days per week: ${data.days}, goal: ${data.goal}, equipment: ${data.equipment}, style: ${data.style || 'best fit'}, limitations: ${data.limitations || 'none'}`;
+            const prompt = `
+You are a certified strength and conditioning coach, clinical exercise physiologist, and precision nutrition expert. Your job is to return a fully customized **weekly training and meal plan**, built around the user's input. The response must be **strictly formatted** as a valid JSON object. No markdown, no text, no headers — only JSON.
+
+-------------------
+✅ JSON STRUCTURE (Strictly Follow):
+{
+  "plan": [ { "day": "Day 1", "focus": "Pull (Back, Biceps)", "exercises": [ { "name": "Dumbbell Bent-Over Row", "sets": 3, "reps": 10, "rest_seconds": 60, "notes": "Use moderate weight. Avoid jerking motion.", "youtube_search_query": "how to do dumbbell bent over row", "instructions": ["Hinge at your hips, keeping your back straight.", "Pull the dumbbells towards your lower chest.", "Squeeze your back muscles at the top."] } ], "cardio": { "type": "MISS – Incline Walk", "duration_minutes": 30, "intensity": "Moderate (RPE 6/10)", "timing": "Post-weight training", "notes": "Supports fat loss via steady-state effort." } } ],
+  "meals": { "daily_calories": 2100, "macros": { "protein_g": 160, "carbs_g": 180, "fats_g": 70 } },
+  "summary": { "goal": "Fat Loss", "style": "Push/Pull/Legs", "days_per_week": 5, "volume_type": "Low volume, high intensity", "equipment_used": ["Dumbbells", "Resistance Bands"], "adjustments": ["Avoid deep lunges due to mild knee discomfort"], "user_profile": { "sex": "Male", "weight_kg": 82 } }
+}
+-------------------
+
+✅ LOGIC RULES:
+1.  **Workout Plan:** For each exercise, you MUST include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
+2.  **Nutrition logic:** Use **Mifflin-St Jeor formula** as a base for daily calories. Set macros as: **Protein**: 1.8–2.2g/kg for fat loss, 2–2.5g/kg for muscle gain; **Fats**: 25–30% total calories; **Carbs**: Remaining cals.
+3.  Return **only valid JSON**, no explanations, markdown, or commentary.
+
+-------------------
+
+✅ INPUT VARIABLES TO BE INJECTED:
+- sex: "${data.gender}"
+- weight_kg: ${data.weight}
+- height_cm: ${data.height}
+- age: 28
+- days_per_week: ${data.days}
+- goal: "${data.goal}"
+- equipment: ["${data.equipment}"]
+- style: "${data.style || 'Not specified, choose best fit'}"
+- notes: "${data.limitations || 'None'}"
+`;
 
             let resultText = await callGeminiAPI(prompt);
             const startIndex = resultText.indexOf('{');
@@ -198,7 +226,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
                 resultText = resultText.substring(startIndex, endIndex + 1);
             }
-            console.log('Raw AI plan response:', resultText);
             const resultJson = JSON.parse(resultText);
             currentPlanData = resultJson;
             displayPlan(resultJson);
@@ -240,29 +267,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const exerciseToSwap = currentPlanData.plan[dayIndex].exercises[exIndex];
             const formData = new FormData(form);
             const equipment = formData.get('equipment');
-            // SIMPLER SWAP PROMPT (REVERTED)
-            const swapPrompt = `Suggest a suitable alternative exercise for "${exerciseToSwap.name}" for a user with access to "${equipment}". Return ONLY a valid JSON object with the same structure as the original exercise: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "...", "youtube_search_query": "...", "instructions": ["...", ...] }`;
+            const swapPrompt = `Provide a single suitable alternative exercise for "${exerciseToSwap.name}". The user has access to a "${equipment}". Return a single valid JSON object for the new exercise, with no explanation. The JSON object must have the exact same structure as the original: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "...", "youtube_search_query": "...", "instructions": ["..."] }. Original exercise for context: ${JSON.stringify(exerciseToSwap)}`;
             let resultText = await callGeminiAPI(swapPrompt);
             const startIndex = resultText.indexOf('{');
             const endIndex = resultText.lastIndexOf('}');
             if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
                 resultText = resultText.substring(startIndex, endIndex + 1);
             }
-            console.log('Raw AI swap response:', resultText);
-            let newExercise = {};
-            try {
-                newExercise = JSON.parse(resultText);
-            } catch (e) {
-                throw new Error('Malformed exercise returned by AI');
-            }
-            // Validate and fill missing fields
-            if (!newExercise.name) throw new Error('Malformed exercise returned by AI');
-            if (newExercise.rest_seconds === undefined || newExercise.rest_seconds === null || isNaN(Number(newExercise.rest_seconds))) newExercise.rest_seconds = 60;
-            if (!Array.isArray(newExercise.instructions) || newExercise.instructions.length < 1) newExercise.instructions = ["See video for steps."];
-            if (!('sets' in newExercise)) newExercise.sets = exerciseToSwap.sets || 3;
-            if (!('reps' in newExercise)) newExercise.reps = exerciseToSwap.reps || 10;
-            if (!('notes' in newExercise)) newExercise.notes = '';
-            if (!('youtube_search_query' in newExercise)) newExercise.youtube_search_query = newExercise.name;
+            const newExercise = JSON.parse(resultText);
             currentPlanData.plan[dayIndex].exercises[exIndex] = newExercise;
             displayPlan(currentPlanData);
         } catch (error) {
@@ -270,9 +282,8 @@ document.addEventListener('DOMContentLoaded', function() {
             let msg = 'Could not swap the exercise.';
             if (error.message && error.message.includes('Failed to parse')) {
                 msg += ' The AI response was not in the correct format.';
+            } else if (error.message && error.message.includes('Function call failed')) {
                 msg += ' The AI service is currently unavailable. Please try again later.';
-            } else if (error.message && error.message.includes('Malformed exercise')) {
-                msg += ' The AI did not return a valid exercise.';
             } else {
                 msg += ' Please check your network connection and try again.';
             }
@@ -290,10 +301,8 @@ document.addEventListener('DOMContentLoaded', function() {
         nutritionSection.innerHTML = '';
 
         plan.forEach((day, dayIndex) => {
-            const exercisesHtml = day.exercises.map((ex, exIndex) => {
-                // Fallback for rest_seconds
-                let restDisplay = (ex.rest_seconds !== undefined && ex.rest_seconds !== null && ex.rest_seconds !== '' && ex.rest_seconds !== 'undefined' && !isNaN(Number(ex.rest_seconds))) ? `${ex.rest_seconds}s` : 'N/A';
-                return `
+            const exercisesHtml = day.exercises.map((ex, exIndex) => `
+                <li class="py-3 border-b border-gray-700 last:border-b-0 transition-all duration-300">
                     <div class="flex justify-between items-center gap-2 flex-wrap">
                         <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal" aria-label="View instructions for ${ex.name}">(view instructions)</button></span>
                         <div class="flex items-center gap-4 flex-shrink-0">
@@ -301,14 +310,12 @@ document.addEventListener('DOMContentLoaded', function() {
                            <button onclick="swapExercise(${dayIndex}, ${exIndex}, this)" class="text-xs bg-gray-600 hover:bg-gray-500 rounded-full px-2 py-1 transition" aria-label="Swap exercise">Swap</button>
                         </div>
                     </div>
-                    <p class="text-sm text-gray-400 mt-1">Rest: ${restDisplay}. ${ex.notes || ''}</p>
-                </li>`;
-            }).join('');
+                    <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
+                </li>`).join('');
             planDetailsContainer.innerHTML += `<div class="plan-card transition-all duration-500"><h4 class="text-xl font-bold text-blue-400">${day.day}</h4><h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
         });
 
-        // Nutrition/macros section with fallback
-        if (meals && meals.macros && typeof meals.macros === 'object' && meals.macros !== null) {
+        if (meals && meals.macros) {
             const macros = meals.macros;
             nutritionSection.innerHTML = `
                 <div class="nutrition-card mt-12 transition-all duration-500">
@@ -316,26 +323,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="grid grid-cols-1 gap-6 text-center">
                         <div class="bg-gray-800 p-6 rounded-xl">
                             <p class="text-lg text-gray-400">Calories</p>
-                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories !== undefined ? macros.daily_calories + ' kcal' : (meals.daily_calories !== undefined ? meals.daily_calories + ' kcal' : 'N/A')}</p>
+                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories} kcal</p>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Protein</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.protein_g !== undefined ? macros.protein_g + 'g' : 'N/A'}</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.protein_g}g</p>
                             </div>
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Carbs</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.carbs_g !== undefined ? macros.carbs_g + 'g' : 'N/A'}</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.carbs_g}g</p>
                             </div>
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Fats</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.fats_g !== undefined ? macros.fats_g + 'g' : 'N/A'}</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.fats_g}g</p>
                             </div>
                         </div>
                     </div>
                 </div>`;
-        } else {
-            nutritionSection.innerHTML = `<div class='nutrition-card mt-12 text-center text-red-400'>Nutrition data unavailable.</div>`;
         }
     }
 
@@ -344,24 +349,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!currentPlanData) return;
         const exercise = currentPlanData.plan[dayIndex].exercises[exIndex];
         modalTitle.textContent = exercise.name;
-        const videoQuery = encodeURIComponent(exercise.youtube_search_query || exercise.name);
+        const videoQuery = encodeURIComponent(exercise.youtube_search_query);
         modalVideo.src = `https://www.youtube.com/embed?listType=search&list=${videoQuery}`;
         youtubeLink.href = `https://www.youtube.com/results?search_query=${videoQuery}`;
-        // Robust instructions handling
-        if (Array.isArray(exercise.instructions) && exercise.instructions.length > 0) {
-            modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
-        } else if (typeof exercise.instructions === 'string' && exercise.instructions.length > 0) {
-            modalInstructions.innerHTML = `<li>${exercise.instructions}</li>`;
-        } else {
-            modalInstructions.innerHTML = '<li>No instructions available.</li>';
-        }
+        modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
         exerciseModal.classList.remove('hidden');
         // Accessibility: trap focus
         lastFocusedElement = document.activeElement;
         trapModalFocus();
         setTimeout(() => {
-            const closeBtn = exerciseModal.querySelector('button[aria-label="Close Exercise Details Modal"]');
-            if (closeBtn) closeBtn.focus();
+            exerciseModal.querySelector('button[aria-label="Close Exercise Details Modal"]').focus();
         }, 100);
     }
 
@@ -406,8 +403,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Utility Functions ---
     window.downloadPDF = function() {
-        if (!currentPlanData || !currentPlanData.plan || !Array.isArray(currentPlanData.plan) || currentPlanData.plan.length === 0) {
-            alert("No plan data available. Please generate a plan first.");
+        if (!currentPlanData) {
+            alert("Please generate a plan first!");
             return;
         }
 
@@ -417,30 +414,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Layout constants
         const margin = 15;
-        const bottomMargin = 20; // Minimum space from bottom for footer
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const usableWidth = pageWidth - margin * 2;
+        const pad = 4;
         const accent = { r: 29, g: 78, b: 216 }; // Tailwind blue-700
         const dark = { r: 31, g: 41, b: 55 };
         const light = { r: 245, g: 245, b: 245 };
         let y = margin;
 
-        // --- Helper Functions ---
-        function addSeparator(extra = 0) {
-            doc.setDrawColor(180);
-            doc.setLineWidth(0.5);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 6 + extra;
-        }
-        function checkPageBreak(linesNeeded = 10) {
-            if (y > pageHeight - bottomMargin - linesNeeded) {
-                doc.addPage();
-                y = margin;
-            }
-        }
-
-        // --- Cover Page (logo) ---
+        // Cover Page (logo)
         doc.setFillColor(light.r, light.g, light.b);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
         if (window.gymplanLogoBase64) {
@@ -456,98 +439,116 @@ document.addEventListener('DOMContentLoaded', function() {
         doc.addPage();
         y = margin;
 
-        // --- User Profile & Plan Settings ---
-        doc.setFont("times", "bold").setFontSize(16).setTextColor(accent.r, accent.g, accent.b);
-        doc.text("User Profile", margin, y);
-        y += 8;
-        addSeparator();
-        doc.setFont("times", "normal").setFontSize(12).setTextColor(0);
-        if (summary && summary.user_profile) {
-            const up = summary.user_profile;
-            doc.text(`Gender: ${up.sex || ''}`, margin, y); y += 6;
-            doc.text(`Weight: ${up.weight_kg ? up.weight_kg + ' kg' : ''}`, margin, y); y += 8;
-        }
-        doc.setFont("times", "bold").setFontSize(16).setTextColor(accent.r, accent.g, accent.b);
-        doc.text("Goal Settings", margin, y);
-        y += 8;
-        addSeparator();
+        // --- Plan Summary ---
+        doc.setFont("times", "bold").setFontSize(20).setTextColor(accent.r, accent.g, accent.b);
+        doc.text("Plan Summary", margin, y);
+        y += 10;
+        doc.setDrawColor(accent.r, accent.g, accent.b);
+        doc.setLineWidth(0.7);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 6;
         doc.setFont("times", "normal").setFontSize(12).setTextColor(0);
         if (summary) {
-            doc.text(`Goal: ${summary.goal || ''}`, margin, y); y += 6;
-            doc.text(`Training Split: ${summary.style || ''}`, margin, y); y += 6;
-            doc.text(`Days per Week: ${summary.days_per_week || ''}`, margin, y); y += 6;
-            doc.text(`Equipment Access: ${(summary.equipment_used || []).join(', ')}`, margin, y); y += 8;
+            const lines = [
+                `Goal: ${summary.goal || ''}`,
+                `Training Style: ${summary.style || ''}`,
+                `Days per Week: ${summary.days_per_week || ''}`,
+                `Equipment Used: ${(summary.equipment_used || []).join(', ')}`,
+                `User Profile: ${summary.user_profile ? `${summary.user_profile.sex || ''}${summary.user_profile.sex ? ', ' : ''}${summary.user_profile.age ? summary.user_profile.age + ' years old, ' : ''}${summary.user_profile.weight_kg ? summary.user_profile.weight_kg + ' kg' : ''}${summary.user_profile.height_cm ? summary.user_profile.height_cm + ' cm' : ''}` : ''}`,
+                summary.adjustments && summary.adjustments.length ? `Adjustments: ${summary.adjustments.join('; ')}` : ''
+            ].filter(Boolean);
+            lines.forEach(line => {
+                if (y > pageHeight - 20) { doc.addPage(); y = margin; }
+                doc.setFont("times", "bold").text(line.split(':')[0] + ':', margin, y);
+                doc.setFont("times", "normal").text(line.slice(line.indexOf(':') + 1).trim(), margin + 45, y);
+                y += 8;
+            });
         }
-        addSeparator(2);
+        y += 2;
+        doc.setDrawColor(180);
+        doc.setLineWidth(0.5);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 8;
 
         // --- Days/Workouts ---
         plan.forEach((day, dayIdx) => {
-            checkPageBreak(30);
-            doc.setFont("times", "bold").setFontSize(15).setTextColor(accent.r, accent.g, accent.b);
-            doc.text(`DAY ${dayIdx + 1} – ${day.focus}`, margin, y);
-            y += 8;
-            addSeparator();
+            if (y > pageHeight - 40) { doc.addPage(); y = margin; }
+            doc.setFont("times", "bold").setFontSize(16).setTextColor(accent.r, accent.g, accent.b);
+            doc.text(`Day ${dayIdx + 1} – ${day.focus}`, margin, y);
+            y += 9;
+            doc.setDrawColor(220);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 4;
             day.exercises.forEach(ex => {
-                checkPageBreak(20);
+                if (y > pageHeight - 30) { doc.addPage(); y = margin; }
                 doc.setFont("times", "bold").setFontSize(13).setTextColor(dark.r, dark.g, dark.b);
                 doc.text(ex.name, margin, y);
-                y += 6;
-                doc.setFont("times", "normal").setFontSize(11).setTextColor(0);
-                doc.text(`Sets x Reps: ${ex.sets} x ${ex.reps}      Rest: ${ex.rest_seconds} sec`, margin + 2, y);
+                y += 7; // More vertical spacing
+                // Highlight key numbers in blue and/or bold
+                doc.setFont("times", "bold").setFontSize(11).setTextColor(accent.r, accent.g, accent.b);
+                doc.text(`Sets x Reps:`, margin + 2, y);
+                doc.setFont("times", "bold").setTextColor(0);
+                doc.text(` ${ex.sets} x ${ex.reps}`, margin + 32, y);
+                y += 5;
+                doc.setFont("times", "bold").setTextColor(accent.r, accent.g, accent.b);
+                doc.text(`Rest:`, margin + 2, y);
+                doc.setFont("times", "bold").setTextColor(0);
+                doc.text(` ${ex.rest_seconds} seconds`, margin + 18, y);
                 y += 5;
                 if (ex.notes) {
                     doc.setFont("times", "italic").setFontSize(10).setTextColor(0);
-                    doc.text(`Tip: ${ex.notes}`, margin + 2, y);
+                    doc.text(`Notes: ${ex.notes}`, margin + 2, y);
                     y += 5;
                 }
-                // Only loop if instructions is an array
-                if (Array.isArray(ex.instructions) && ex.instructions.length > 0) {
+                if (ex.instructions && ex.instructions.length) {
                     doc.setFont("times", "normal").setFontSize(10);
                     ex.instructions.forEach((step, idx) => {
-                        checkPageBreak(10);
+                        if (y > pageHeight - 20) { doc.addPage(); y = margin; }
                         doc.text(`- ${step}`, margin + 6, y);
                         y += 4;
                     });
-                } else if (typeof ex.instructions === 'string' && ex.instructions.length > 0) {
-                    doc.setFont("times", "normal").setFontSize(10);
-                    doc.text(`- ${ex.instructions}`, margin + 6, y);
-                    y += 4;
                 }
-                y += 4;
+                y += 6; // More vertical spacing between exercises
             });
-            // Cardio Section
             if (day.cardio) {
-                checkPageBreak(15);
-                doc.setFont("times", "bold").setFontSize(13).setTextColor(accent.r, accent.g, accent.b);
-                doc.text("Cardio Session", margin, y);
+                if (y > pageHeight - 30) { doc.addPage(); y = margin; }
+                doc.setFont("times", "bold").setFontSize(12).setTextColor(accent.r, accent.g, accent.b);
+                doc.text("Cardio", margin, y);
                 y += 6;
-                addSeparator();
                 doc.setFont("times", "normal").setFontSize(11).setTextColor(0);
                 if (day.cardio.type) {
-                    doc.text(`Type: ${day.cardio.type}`, margin, y); y += 5;
+                    doc.text(`Type: ${day.cardio.type}`, margin + 2, y); y += 5;
                 }
                 if (day.cardio.duration_minutes) {
-                    doc.text(`Duration: ${day.cardio.duration_minutes} minutes`, margin, y); y += 5;
+                    doc.text(`Duration: ${day.cardio.duration_minutes} minutes`, margin + 2, y); y += 5;
                 }
                 if (day.cardio.intensity) {
-                    doc.text(`Intensity: ${day.cardio.intensity}`, margin, y); y += 5;
+                    doc.text(`Intensity: ${day.cardio.intensity}`, margin + 2, y); y += 5;
                 }
                 if (day.cardio.notes) {
                     doc.setFont("times", "italic").setFontSize(10);
-                    doc.text(`Notes: ${day.cardio.notes}`, margin, y); y += 5;
+                    doc.text(`Notes: ${day.cardio.notes}`, margin + 2, y); y += 5;
                 }
                 y += 2;
             }
-            addSeparator(2);
+            y += 2;
+            doc.setDrawColor(180);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 10; // More vertical spacing between days
         });
 
         // --- Nutrition Summary as Table ---
         if (meals && meals.macros) {
-            checkPageBreak(25);
-            doc.setFont("times", "bold").setFontSize(15).setTextColor(accent.r, accent.g, accent.b);
+            if (y > pageHeight - 40) { doc.addPage(); y = margin; }
+            doc.setFont("times", "bold").setFontSize(16).setTextColor(accent.r, accent.g, accent.b);
             doc.text("Daily Nutrition Summary", margin, y);
-            y += 8;
-            addSeparator();
+            y += 9;
+            doc.setDrawColor(accent.r, accent.g, accent.b);
+            doc.setLineWidth(0.7);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 6;
             // Table
             const macros = meals.macros;
             const table = [
@@ -557,75 +558,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 ["Fats", `${macros.fats_g}g`],
             ];
             const col1 = margin;
-            const col2 = margin + 45;
+            const col2 = margin + 60;
             doc.setFont("times", "bold").setFontSize(12);
             table.forEach((row, i) => {
-                checkPageBreak(10);
+                if (y > pageHeight - 20) { doc.addPage(); y = margin; }
                 doc.setTextColor(accent.r, accent.g, accent.b);
                 doc.text(row[0], col1, y);
                 doc.setTextColor(0);
                 doc.text(row[1], col2, y);
-                y += 7;
+                y += 10;
             });
-            addSeparator();
-            doc.setFont("times", "italic").setFontSize(10).setTextColor(0);
-            if (summary && summary.user_profile && macros.protein_g && summary.user_profile.weight_kg) {
-                const proteinPerKg = (macros.protein_g / summary.user_profile.weight_kg).toFixed(2);
-                doc.text(`Protein = ${proteinPerKg}g/kg (based on ${summary.user_profile.weight_kg}kg weight)`, margin, y);
-                y += 5;
-            }
-            doc.setFont("times", "normal").setFontSize(10).setTextColor(0);
-            doc.text("Suggested meal breakdown available at: gymplan.fit/macros", margin, y);
+            y += 2;
+            doc.setDrawColor(180);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
             y += 8;
         }
 
-        // --- Progress Log (Optional) ---
-        checkPageBreak(30);
-        doc.setFont("times", "bold").setFontSize(14).setTextColor(accent.r, accent.g, accent.b);
-        doc.text("Weekly Progress Log (Optional)", margin, y);
-        y += 7;
-        addSeparator();
-
-        // Use monospace font for the table
-        doc.setFont("courier", "bold").setFontSize(11).setTextColor(0);
-        // Define column positions
-        const colDay = margin;
-        const colExercise = margin + 18;
-        const colWeight = margin + 55;
-        const colNotes = margin + 90;
-        // Header
-        doc.text("Day", colDay, y);
-        doc.text("Exercise", colExercise, y);
-        doc.text("Weight Used", colWeight, y);
-        doc.text("Notes", colNotes, y);
-        y += 6;
-        // Divider
-        doc.setFont("courier", "normal").setFontSize(10);
-        doc.text("-----", colDay, y);
-        doc.text("----------", colExercise, y);
-        doc.text("-----------", colWeight, y);
-        doc.text("------------------", colNotes, y);
-        y += 5;
-        // Rows
-        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-        days.forEach(day => {
-            checkPageBreak(10);
-            doc.text(day, colDay, y);
-            // Leave columns blank for user to fill in
-            doc.text("", colExercise, y);
-            doc.text("", colWeight, y);
-            doc.text("", colNotes, y);
-            y += 7; // More vertical space for clarity
-        });
-        addSeparator(2);
-
-        // --- Motivational Tagline ---
-        checkPageBreak(10);
-        doc.setFont("times", "italic").setFontSize(12).setTextColor(accent.r, accent.g, accent.b);
-        doc.text('"Built by science. Personalized by AI. Executed by you."', pageWidth / 2, y, { align: "center" });
-        y += 10;
-
-        // --- Footer: Page Numbers ---
+        // Footer
         const pageCount = doc.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i)
