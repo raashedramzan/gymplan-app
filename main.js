@@ -48,13 +48,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Form Initialization ---
     function initializeForm() {
         trainingDaysContainer.innerHTML = trainingDaysData.map(day => `
-            <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" required><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Training days option for ${day} days">${day}</label></div>`).join('');
+            <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer"><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Training days option for ${day} days">${day}</label></div>`).join('');
         mainGoalContainer.innerHTML = mainGoalsData.map(goal => `
-            <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Main goal option for ${goal}">${goal}</label></div>`).join('');
+            <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer"><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Main goal option for ${goal}">${goal}</label></div>`).join('');
         equipmentContainer.innerHTML = equipmentData.map(equip => `
-            <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Equipment option for ${equip}">${equip}</label></div>`).join('');
+            <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer"><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Equipment option for ${equip}">${equip}</label></div>`).join('');
         genderContainer.innerHTML = genderData.map(gender => `
-            <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer" required><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Gender option for ${gender}">${gender}</label></div>`).join('');
+            <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer"><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Gender option for ${gender}">${gender}</label></div>`).join('');
     }
     initializeForm();
 
@@ -208,11 +208,13 @@ No markdown, no explanations, no extra text.
 - Include clear, step-by-step instructions for each exercise.
 - Always provide rest intervals and safety tips.
 - Respect any injuries or limitations provided by the user.
+- For each exercise, you MUST include an "instructions" field as an array of at least 3 step-by-step strings. Do not use any other type or omit this field.
 
 ✅ NUTRITION LOGIC:
 - Use evidence-based formulas (e.g., Mifflin-St Jeor for calories).
 - Set protein, fat, and carb targets based on user weight, goal, and best practices (e.g., 1.8–2.2g/kg protein for fat loss).
 - Never recommend extreme or unsafe diets.
+- The "meals" object MUST include a "macros" object with "protein_g", "carbs_g", and "fats_g" as numbers. Do not omit or rename these fields.
 
 ✅ PERSONALIZATION:
 - Use all user inputs: gender, weight, height, days per week, equipment, limitations, etc.
@@ -379,7 +381,8 @@ No markdown, no explanations, no extra text.
             planDetailsContainer.innerHTML += `<div class="plan-card transition-all duration-500"><h4 class="text-xl font-bold text-blue-400">${day.day}</h4><h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
         });
 
-        if (meals && meals.macros) {
+        // Nutrition/macros section with fallback
+        if (meals && meals.macros && typeof meals.macros === 'object' && meals.macros !== null) {
             const macros = meals.macros;
             nutritionSection.innerHTML = `
                 <div class="nutrition-card mt-12 transition-all duration-500">
@@ -387,24 +390,26 @@ No markdown, no explanations, no extra text.
                     <div class="grid grid-cols-1 gap-6 text-center">
                         <div class="bg-gray-800 p-6 rounded-xl">
                             <p class="text-lg text-gray-400">Calories</p>
-                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories} kcal</p>
+                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories || 'N/A'} kcal</p>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Protein</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.protein_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.protein_g !== undefined ? macros.protein_g + 'g' : 'N/A'}</p>
                             </div>
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Carbs</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.carbs_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.carbs_g !== undefined ? macros.carbs_g + 'g' : 'N/A'}</p>
                             </div>
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Fats</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.fats_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.fats_g !== undefined ? macros.fats_g + 'g' : 'N/A'}</p>
                             </div>
                         </div>
                     </div>
                 </div>`;
+        } else {
+            nutritionSection.innerHTML = `<div class='nutrition-card mt-12 text-center text-red-400'>Nutrition data unavailable.</div>`;
         }
     }
 
@@ -419,6 +424,8 @@ No markdown, no explanations, no extra text.
         // Robust instructions handling
         if (Array.isArray(exercise.instructions) && exercise.instructions.length > 0) {
             modalInstructions.innerHTML = exercise.instructions.map(step => `<li>${step}</li>`).join('');
+        } else if (typeof exercise.instructions === 'string' && exercise.instructions.length > 0) {
+            modalInstructions.innerHTML = `<li>${exercise.instructions}</li>`;
         } else {
             modalInstructions.innerHTML = '<li>No instructions available.</li>';
         }
@@ -567,13 +574,18 @@ No markdown, no explanations, no extra text.
                     doc.text(`Tip: ${ex.notes}`, margin + 2, y);
                     y += 5;
                 }
-                if (ex.instructions && ex.instructions.length) {
+                // Only loop if instructions is an array
+                if (Array.isArray(ex.instructions) && ex.instructions.length > 0) {
                     doc.setFont("times", "normal").setFontSize(10);
                     ex.instructions.forEach((step, idx) => {
                         checkPageBreak(10);
                         doc.text(`- ${step}`, margin + 6, y);
                         y += 4;
                     });
+                } else if (typeof ex.instructions === 'string' && ex.instructions.length > 0) {
+                    doc.setFont("times", "normal").setFontSize(10);
+                    doc.text(`- ${ex.instructions}`, margin + 6, y);
+                    y += 4;
                 }
                 y += 4;
             });
