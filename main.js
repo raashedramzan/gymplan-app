@@ -493,22 +493,21 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         doc.line(margin, y, pageWidth - margin, y);
         y += 6;
         doc.setFont("times", "normal").setFontSize(12).setTextColor(0);
-        if (summary) {
-            const lines = [
-                `Goal: ${summary.goal || ''}`,
-                `Training Style: ${summary.style || ''}`,
-                `Days per Week: ${summary.days_per_week || ''}`,
-                `Equipment Used: ${(summary.equipment_used || []).join(', ')}`,
-                `User Profile: ${summary.user_profile ? `${summary.user_profile.sex || ''}${summary.user_profile.sex ? ', ' : ''}${summary.user_profile.age ? summary.user_profile.age + ' years old, ' : ''}${summary.user_profile.weight_kg ? summary.user_profile.weight_kg + ' kg' : ''}${summary.user_profile.height_cm ? summary.user_profile.height_cm + ' cm' : ''}` : ''}`,
-                summary.adjustments && summary.adjustments.length ? `Adjustments: ${summary.adjustments.join('; ')}` : ''
-            ].filter(Boolean);
-            lines.forEach(line => {
-                if (y > pageHeight - 20) { doc.addPage(); y = margin; }
-                doc.setFont("times", "bold").text(line.split(':')[0] + ':', margin, y);
-                doc.setFont("times", "normal").text(line.slice(line.indexOf(':') + 1).trim(), margin + 45, y);
-                y += 8;
-            });
-        }
+        // Always render all summary fields, wrap long values
+        const summaryFields = [
+            { label: "Goal", value: summary && summary.goal ? summary.goal : 'N/A' },
+            { label: "Training Style", value: summary && summary.style ? summary.style : 'N/A' },
+            { label: "Days per Week", value: summary && summary.days_per_week ? summary.days_per_week : 'N/A' },
+            { label: "Equipment Used", value: summary && summary.equipment_used && summary.equipment_used.length ? summary.equipment_used.join(', ') : 'N/A' },
+            { label: "User Profile", value: summary && summary.user_profile ? `${summary.user_profile.sex || ''}${summary.user_profile.sex ? ', ' : ''}${summary.user_profile.age ? summary.user_profile.age + ' years old, ' : ''}${summary.user_profile.weight_kg ? summary.user_profile.weight_kg + ' kg' : ''}${summary.user_profile.height_cm ? summary.user_profile.height_cm + ' cm' : ''}`.trim() || 'N/A' : 'N/A' }
+        ];
+        summaryFields.forEach(field => {
+            doc.setFont("times", "bold").text(field.label + ':', margin, y);
+            doc.setFont("times", "normal");
+            const wrapped = doc.splitTextToSize(field.value, pageWidth - margin - (margin + 45));
+            doc.text(wrapped, margin + 45, y);
+            y += 8 + (wrapped.length - 1) * 6;
+        });
         y += 2;
         doc.setDrawColor(180);
         doc.setLineWidth(0.5);
