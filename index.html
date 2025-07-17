@@ -271,7 +271,11 @@
                                 <label class="block text-sm font-medium mb-2">Gender</label>
                                 <div id="genderContainer" class="grid grid-cols-2 gap-3"></div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                                <div>
+                                    <label for="age" class="block text-sm font-medium mb-2">Age (years)</label>
+                                    <input type="number" name="age" id="age" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" required aria-label="Age in years" min="10" max="100">
+                                </div>
                                 <div>
                                     <label for="height" class="block text-sm font-medium mb-2">Height (cm)</label>
                                     <input type="number" name="height" id="height" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" required aria-label="Height in centimeters">

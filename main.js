@@ -177,6 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
             gender: formData.get('gender'),
             height: formData.get('height'),
             weight: formData.get('weight'),
+            age: formData.get('age'),
             equipment: formData.get('equipment'),
             style: formData.get('trainingStyle'),
             limitations: formData.get('limitations'),
@@ -229,7 +230,7 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
 - sex: "${data.gender}"
 - weight_kg: ${data.weight}
 - height_cm: ${data.height}
-- age: 28
+- age: ${data.age}
 - days_per_week: ${data.days}
 - goal: "${data.goal}"
 - equipment: ["${data.equipment}"]
