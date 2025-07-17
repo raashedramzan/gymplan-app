@@ -571,20 +571,42 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         }
 
         // --- Progress Log (Optional) ---
-        checkPageBreak(25);
+        checkPageBreak(30);
         doc.setFont("times", "bold").setFontSize(14).setTextColor(accent.r, accent.g, accent.b);
         doc.text("Weekly Progress Log (Optional)", margin, y);
         y += 7;
         addSeparator();
-        doc.setFont("times", "bold").setFontSize(11).setTextColor(0);
-        doc.text("| Day | Exercise | Weight Used | Notes           |", margin, y); y += 6;
-        doc.text("|-----|----------|-------------|------------------|", margin, y); y += 6;
-        doc.setFont("times", "normal").setFontSize(11);
+
+        // Use monospace font for the table
+        doc.setFont("courier", "bold").setFontSize(11).setTextColor(0);
+        // Define column positions
+        const colDay = margin;
+        const colExercise = margin + 18;
+        const colWeight = margin + 55;
+        const colNotes = margin + 90;
+        // Header
+        doc.text("Day", colDay, y);
+        doc.text("Exercise", colExercise, y);
+        doc.text("Weight Used", colWeight, y);
+        doc.text("Notes", colNotes, y);
+        y += 6;
+        // Divider
+        doc.setFont("courier", "normal").setFontSize(10);
+        doc.text("-----", colDay, y);
+        doc.text("----------", colExercise, y);
+        doc.text("-----------", colWeight, y);
+        doc.text("------------------", colNotes, y);
+        y += 5;
+        // Rows
         const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
         days.forEach(day => {
             checkPageBreak(10);
-            doc.text(`| ${day}  |          |             |                  |`, margin, y);
-            y += 6;
+            doc.text(day, colDay, y);
+            // Leave columns blank for user to fill in
+            doc.text("", colExercise, y);
+            doc.text("", colWeight, y);
+            doc.text("", colNotes, y);
+            y += 7; // More vertical space for clarity
         });
         addSeparator(2);
 
