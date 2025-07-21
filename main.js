@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const trainingDaysData = [1, 2, 3, 4, 5, 6, 7];
     const mainGoalsData = ['Muscle Gain', 'Fat Loss'];
     const subGoalsData = ['Science-Based', 'Intense'];
-    const equipmentData = ['Commercial Gym', 'Dumbbells at Home', 'Calisthenics'];
+    const equipmentData = ['Commercial Gym', 'Dumbbells at Home', 'Home Workout'];
     const genderData = ['Male', 'Female'];
 
     // --- State Management ---
