@@ -45,16 +45,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalInstructions = document.getElementById('modalInstructions');
     const youtubeLink = document.getElementById('youtubeLink');
 
+    // --- Utility: Manage Required Attributes for Visible Step ---
+    function updateRequiredAttributes() {
+        // Remove 'required' from all inputs
+        const allRequired = form.querySelectorAll('[required]');
+        allRequired.forEach(input => input.removeAttribute('required'));
+        // Add 'required' only to visible step's required fields
+        const currentStepElement = document.getElementById(`step-${currentStep}`);
+        if (currentStepElement) {
+            const visibleRequired = currentStepElement.querySelectorAll('[data-always-required]');
+            visibleRequired.forEach(input => input.setAttribute('required', 'required'));
+        }
+    }
+
     // --- Form Initialization ---
     function initializeForm() {
         trainingDaysContainer.innerHTML = trainingDaysData.map(day => `
-            <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" required><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Training days option for ${day} days">${day}</label></div>`).join('');
+            <div><input type="radio" id="day-${day}" name="trainingDays" value="${day}" class="hidden peer" data-always-required><label for="day-${day}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Training days option for ${day} days">${day}</label></div>`).join('');
         mainGoalContainer.innerHTML = mainGoalsData.map(goal => `
-            <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" required><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Main goal option for ${goal}">${goal}</label></div>`).join('');
+            <div><input type="radio" id="mainGoal-${goal.replace(/ /g, '')}" name="mainGoal" value="${goal}" class="hidden peer" data-always-required><label for="mainGoal-${goal.replace(/ /g, '')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Main goal option for ${goal}">${goal}</label></div>`).join('');
         equipmentContainer.innerHTML = equipmentData.map(equip => `
-            <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" required><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Equipment option for ${equip}">${equip}</label></div>`).join('');
+            <div><input type="radio" id="equip-${equip.replace(/ /g,'')}" name="equipment" value="${equip}" class="hidden peer" data-always-required><label for="equip-${equip.replace(/ /g,'')}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Equipment option for ${equip}">${equip}</label></div>`).join('');
         genderContainer.innerHTML = genderData.map(gender => `
-            <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer" required><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Gender option for ${gender}">${gender}</label></div>`).join('');
+            <div><input type="radio" id="gender-${gender}" name="gender" value="${gender}" class="hidden peer" data-always-required><label for="gender-${gender}" class="block text-center p-4 rounded-lg border border-gray-600 cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-900/50" aria-label="Gender option for ${gender}">${gender}</label></div>`).join('');
+        // After rendering, update required attributes for the first step
+        updateRequiredAttributes();
     }
     initializeForm();
 
@@ -101,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentStep = step;
             document.getElementById(`step-${currentStep}`).classList.add('active');
             updateProgressBar();
+            updateRequiredAttributes();
         }
     }
 
@@ -109,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentStep = step;
         document.getElementById(`step-${currentStep}`).classList.add('active');
         updateProgressBar();
+        updateRequiredAttributes();
     }
 
     function updateProgressBar() {
@@ -138,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
 
+    // On editInputs, also update required attributes
     window.editInputs = function() {
         planOutputSection.classList.add('hidden');
         planGeneratorSection.classList.remove('hidden');
@@ -160,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
+        updateRequiredAttributes();
     }
 
     // --- Form Submission & API Call ---
@@ -177,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
             gender: formData.get('gender'),
             height: formData.get('height'),
             weight: formData.get('weight'),
+            age: formData.get('age'),
             equipment: formData.get('equipment'),
             style: formData.get('trainingStyle'),
             limitations: formData.get('limitations'),
@@ -190,19 +210,36 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loader
         try {
             const prompt = `
-You are a certified strength and conditioning coach, clinical exercise physiologist, and precision nutrition expert. Your job is to return a fully customized **weekly training and meal plan**, built around the user's input. The response must be **strictly formatted** as a valid JSON object. No markdown, no text, no headers — only JSON.
+You are a certified strength and conditioning coach, clinical exercise physiologist, and precision nutrition expert. Your job is to return a fully customized weekly training and meal plan, built around the user's input. The response must be strictly formatted as a valid JSON object. No markdown, no text, no headers — only JSON.
 
 -------------------
 ✅ JSON STRUCTURE (Strictly Follow):
 {
-  "plan": [ { "day": "Day 1", "focus": "Pull (Back, Biceps)", "exercises": [ { "name": "Dumbbell Bent-Over Row", "sets": 3, "reps": 10, "rest_seconds": 60, "notes": "Use moderate weight. Avoid jerking motion.", "youtube_search_query": "how to do dumbbell bent over row", "instructions": ["Hinge at your hips, keeping your back straight.", "Pull the dumbbells towards your lower chest.", "Squeeze your back muscles at the top."] } ], "cardio": { "type": "MISS – Incline Walk", "duration_minutes": 30, "intensity": "Moderate (RPE 6/10)", "timing": "Post-weight training", "notes": "Supports fat loss via steady-state effort." } } ],
-  "meals": { "daily_calories": 2100, "macros": { "protein_g": 160, "carbs_g": 180, "fats_g": 70 } },
-  "summary": { "goal": "Fat Loss", "style": "Push/Pull/Legs", "days_per_week": 5, "volume_type": "Low volume, high intensity", "equipment_used": ["Dumbbells", "Resistance Bands"], "adjustments": ["Avoid deep lunges due to mild knee discomfort"], "user_profile": { "sex": "Male", "weight_kg": 82 } }
+  "plan": [ ... ],
+  "meals": { ... },
+  "summary": { ... }
 }
 -------------------
 
+✅ PERSONALIZATION RULES (MANDATORY):
+- You MUST use ALL user inputs to fully tailor the plan and macros: goal, training style, equipment, gender, weight, height, days per week, and any limitations or injuries.
+- If the user selects "Science-Based", all recommendations must be research-backed and evidence-based (e.g., cite ACSM, ISSN, Schoenfeld, Helms, etc. in your logic, not in the output).
+- If the user has an injury or limitation, you MUST reflect this in the plan (avoid or modify exercises as needed, and mention modifications in notes).
+- The plan and macros MUST always match the user's goal:
+  - For fat loss: calories must be in a deficit, macros must support muscle retention.
+  - For muscle gain: calories must be in a surplus, macros must support hypertrophy.
+  - For maintenance: calories at maintenance, balanced macros.
+- Do NOT return a generic plan. Every aspect must be personalized to the user's selections and notes.
+
+✅ REQUIRED FIELDS (MANDATORY):
+- For each day: include 'day' (string), 'focus' (string), and 'exercises' (array, at least one).
+- For each exercise: include 'name', 'sets', 'reps', 'rest_seconds', 'notes', 'youtube_search_query', 'instructions' (array, at least 3 steps).
+- The 'meals' object MUST include a 'macros' object with 'protein_g', 'carbs_g', 'fats_g', and 'daily_calories' (all numbers).
+- The 'summary' object MUST include: 'goal' (string, user’s selected goal), 'style' (string, user’s selected training style), 'days_per_week' (number), 'equipment_used' (array of strings), and 'user_profile' (object with 'sex', 'weight_kg', 'height_cm', and 'age'). Never omit or rename any of these fields. If a value is unknown, use the user's input or a reasonable default.
+- Never return undefined, null, or omit any required field. If a value is unknown, use a reasonable default.
+
 ✅ LOGIC RULES:
-1.  **Workout Plan:** For each exercise, you MUST include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
+1.  **Workout Plan:** For each exercise, include "name", "sets", "reps", "rest_seconds", "notes", a "youtube_search_query", and a detailed "instructions" array with at least 3 steps. Match the training style and goal with appropriate exercises. Prioritize compound lifts. Only use available "equipment". Respect injury "notes".
 2.  **Nutrition logic:** Use **Mifflin-St Jeor formula** as a base for daily calories. Set macros as: **Protein**: 1.8–2.2g/kg for fat loss, 2–2.5g/kg for muscle gain; **Fats**: 25–30% total calories; **Carbs**: Remaining cals.
 3.  Return **only valid JSON**, no explanations, markdown, or commentary.
 
@@ -212,7 +249,7 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
 - sex: "${data.gender}"
 - weight_kg: ${data.weight}
 - height_cm: ${data.height}
-- age: 28
+- age: ${data.age}
 - days_per_week: ${data.days}
 - goal: "${data.goal}"
 - equipment: ["${data.equipment}"]
@@ -267,14 +304,31 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
             const exerciseToSwap = currentPlanData.plan[dayIndex].exercises[exIndex];
             const formData = new FormData(form);
             const equipment = formData.get('equipment');
-            const swapPrompt = `Provide a single suitable alternative exercise for "${exerciseToSwap.name}". The user has access to a "${equipment}". Return a single valid JSON object for the new exercise, with no explanation. The JSON object must have the exact same structure as the original: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "...", "youtube_search_query": "...", "instructions": ["..."] }. Original exercise for context: ${JSON.stringify(exerciseToSwap)}`;
+            const weight = formData.get('weight');
+            const height = formData.get('height');
+            const days = formData.get('trainingDays');
+            // Add user info to prompt for backend validation
+            const swapPrompt = `Suggest a suitable alternative exercise for "${exerciseToSwap.name}" for a user with access to "${equipment}". User info: weight_kg: ${weight}, height_cm: ${height}, days_per_week: ${days}. Return ONLY a valid JSON object with the same structure as the original exercise: { "name": "...", "sets": ..., "reps": ..., "rest_seconds": ..., "notes": "...", "youtube_search_query": "...", "instructions": ["...", ...] }`;
             let resultText = await callGeminiAPI(swapPrompt);
             const startIndex = resultText.indexOf('{');
             const endIndex = resultText.lastIndexOf('}');
             if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
                 resultText = resultText.substring(startIndex, endIndex + 1);
             }
-            const newExercise = JSON.parse(resultText);
+            let newExercise = {};
+            try {
+                newExercise = JSON.parse(resultText);
+            } catch (e) {
+                throw new Error('Malformed exercise returned by AI');
+            }
+            // Validate and fill missing fields
+            if (!newExercise.name) throw new Error('Malformed exercise returned by AI');
+            if (newExercise.rest_seconds === undefined || newExercise.rest_seconds === null || isNaN(Number(newExercise.rest_seconds))) newExercise.rest_seconds = 60;
+            if (!Array.isArray(newExercise.instructions) || newExercise.instructions.length < 1) newExercise.instructions = ["See video for steps."];
+            if (!('sets' in newExercise)) newExercise.sets = exerciseToSwap.sets || 3;
+            if (!('reps' in newExercise)) newExercise.reps = exerciseToSwap.reps || 10;
+            if (!('notes' in newExercise)) newExercise.notes = '';
+            if (!('youtube_search_query' in newExercise)) newExercise.youtube_search_query = newExercise.name;
             currentPlanData.plan[dayIndex].exercises[exIndex] = newExercise;
             displayPlan(currentPlanData);
         } catch (error) {
@@ -282,8 +336,9 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
             let msg = 'Could not swap the exercise.';
             if (error.message && error.message.includes('Failed to parse')) {
                 msg += ' The AI response was not in the correct format.';
-            } else if (error.message && error.message.includes('Function call failed')) {
                 msg += ' The AI service is currently unavailable. Please try again later.';
+            } else if (error.message && error.message.includes('Malformed exercise')) {
+                msg += ' The AI did not return a valid exercise.';
             } else {
                 msg += ' Please check your network connection and try again.';
             }
@@ -301,18 +356,25 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         nutritionSection.innerHTML = '';
 
         plan.forEach((day, dayIndex) => {
-            const exercisesHtml = day.exercises.map((ex, exIndex) => `
-                <li class="py-3 border-b border-gray-700 last:border-b-0 transition-all duration-300">
-                    <div class="flex justify-between items-center gap-2 flex-wrap">
-                        <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal" aria-label="View instructions for ${ex.name}">(view instructions)</button></span>
-                        <div class="flex items-center gap-4 flex-shrink-0">
-                           <p class="text-blue-400 font-semibold text-right whitespace-nowrap">${ex.sets} x ${ex.reps} reps</p>
-                           <button onclick="swapExercise(${dayIndex}, ${exIndex}, this)" class="text-xs bg-gray-600 hover:bg-gray-500 rounded-full px-2 py-1 transition" aria-label="Swap exercise">Swap</button>
+            const dayFocus = day.focus || 'No focus specified';
+            const exercises = Array.isArray(day.exercises) ? day.exercises : [];
+            let exercisesHtml = '';
+            if (exercises.length > 0) {
+                exercisesHtml = exercises.map((ex, exIndex) => `
+                    <li class="py-3 border-b border-gray-700 last:border-b-0 transition-all duration-300">
+                        <div class="flex justify-between items-center gap-2 flex-wrap">
+                            <span class="font-semibold text-white">${ex.name} <button onclick="openExerciseModal(${dayIndex}, ${exIndex})" class="text-blue-400 hover:underline text-xs ml-1 font-normal" aria-label="View instructions for ${ex.name}">(view instructions)</button></span>
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                               <p class="text-blue-400 font-semibold text-right whitespace-nowrap">${ex.sets} x ${ex.reps} reps</p>
+                               <button onclick="swapExercise(${dayIndex}, ${exIndex}, this)" class="text-xs bg-gray-600 hover:bg-gray-500 rounded-full px-2 py-1 transition" aria-label="Swap exercise">Swap</button>
+                            </div>
                         </div>
-                    </div>
-                    <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
-                </li>`).join('');
-            planDetailsContainer.innerHTML += `<div class="plan-card transition-all duration-500"><h4 class="text-xl font-bold text-blue-400">${day.day}</h4><h5 class="text-lg font-semibold mb-4 text-white">${day.focus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
+                        <p class="text-sm text-gray-400 mt-1">Rest: ${ex.rest_seconds}s. ${ex.notes || ''}</p>
+                    </li>`).join('');
+            } else {
+                exercisesHtml = '<li class="text-gray-400">No exercises specified.</li>';
+            }
+            planDetailsContainer.innerHTML += `<div class="plan-card transition-all duration-500"><h4 class="text-xl font-bold text-blue-400">${day.day || ''}</h4><h5 class="text-lg font-semibold mb-4 text-white">${dayFocus}</h5><ul class="space-y-2 flex-grow">${exercisesHtml}</ul></div>`;
         });
 
         if (meals && meals.macros) {
@@ -323,25 +385,30 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
                     <div class="grid grid-cols-1 gap-6 text-center">
                         <div class="bg-gray-800 p-6 rounded-xl">
                             <p class="text-lg text-gray-400">Calories</p>
-                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories} kcal</p>
+                            <p class="text-4xl font-bold text-blue-400">${macros.daily_calories || meals.daily_calories || 'N/A'} kcal</p>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Protein</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.protein_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.protein_g !== undefined ? macros.protein_g + 'g' : 'N/A'}</p>
                             </div>
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Carbs</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.carbs_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.carbs_g !== undefined ? macros.carbs_g + 'g' : 'N/A'}</p>
                             </div>
                             <div class="bg-gray-800 p-6 rounded-xl">
                                 <p class="text-lg text-gray-400">Fats</p>
-                                <p class="text-4xl font-bold text-blue-400">${macros.fats_g}g</p>
+                                <p class="text-4xl font-bold text-blue-400">${macros.fats_g !== undefined ? macros.fats_g + 'g' : 'N/A'}</p>
                             </div>
                         </div>
                     </div>
+                    <small class="block mt-2 text-xs text-gray-400">These macros are calculated based on your goal, weight, and evidence-based guidelines for optimal results.</small>
                 </div>`;
+        } else {
+            nutritionSection.innerHTML = `<div class='nutrition-card mt-12 text-center text-red-400'>Nutrition data unavailable.</div>`;
         }
+        // Log raw AI response for debugging
+        console.log('Raw AI plan data:', data);
     }
 
     // --- Modal Functions ---
@@ -448,22 +515,21 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
         doc.line(margin, y, pageWidth - margin, y);
         y += 6;
         doc.setFont("times", "normal").setFontSize(12).setTextColor(0);
-        if (summary) {
-            const lines = [
-                `Goal: ${summary.goal || ''}`,
-                `Training Style: ${summary.style || ''}`,
-                `Days per Week: ${summary.days_per_week || ''}`,
-                `Equipment Used: ${(summary.equipment_used || []).join(', ')}`,
-                `User Profile: ${summary.user_profile ? `${summary.user_profile.sex || ''}${summary.user_profile.sex ? ', ' : ''}${summary.user_profile.age ? summary.user_profile.age + ' years old, ' : ''}${summary.user_profile.weight_kg ? summary.user_profile.weight_kg + ' kg' : ''}${summary.user_profile.height_cm ? summary.user_profile.height_cm + ' cm' : ''}` : ''}`,
-                summary.adjustments && summary.adjustments.length ? `Adjustments: ${summary.adjustments.join('; ')}` : ''
-            ].filter(Boolean);
-            lines.forEach(line => {
-                if (y > pageHeight - 20) { doc.addPage(); y = margin; }
-                doc.setFont("times", "bold").text(line.split(':')[0] + ':', margin, y);
-                doc.setFont("times", "normal").text(line.slice(line.indexOf(':') + 1).trim(), margin + 45, y);
-                y += 8;
-            });
-        }
+        // Always render all summary fields, wrap long values
+        const summaryFields = [
+            { label: "Goal", value: summary && summary.goal ? summary.goal : 'N/A' },
+            { label: "Training Style", value: summary && summary.style ? summary.style : 'N/A' },
+            { label: "Days per Week", value: summary && summary.days_per_week ? summary.days_per_week : 'N/A' },
+            { label: "Equipment Used", value: summary && summary.equipment_used && summary.equipment_used.length ? summary.equipment_used.join(', ') : 'N/A' },
+            { label: "User Profile", value: summary && summary.user_profile ? `${summary.user_profile.sex || ''}${summary.user_profile.sex ? ', ' : ''}${summary.user_profile.age ? summary.user_profile.age + ' years old, ' : ''}${summary.user_profile.weight_kg ? summary.user_profile.weight_kg + ' kg' : ''}${summary.user_profile.height_cm ? summary.user_profile.height_cm + ' cm' : ''}`.trim() || 'N/A' : 'N/A' }
+        ];
+        summaryFields.forEach(field => {
+            doc.setFont("times", "bold").text(field.label + ':', margin, y);
+            doc.setFont("times", "normal");
+            const wrapped = doc.splitTextToSize(field.value, pageWidth - margin - (margin + 45));
+            doc.text(wrapped, margin + 45, y);
+            y += 8 + (wrapped.length - 1) * 6;
+        });
         y += 2;
         doc.setDrawColor(180);
         doc.setLineWidth(0.5);
@@ -587,4 +653,36 @@ You are a certified strength and conditioning coach, clinical exercise physiolog
 
         doc.save("GymPlan.pdf");
     }
+
+    // --- Keyboard Navigation for Enter Key ---
+    document.addEventListener('keydown', function(event) {
+        // Only act if Enter is pressed and not Shift+Enter (which should insert a newline in textarea)
+        if (event.key === 'Enter' && !event.shiftKey) {
+            const active = document.activeElement;
+            // If in a textarea, only move if not Shift+Enter
+            if (active && (active.tagName === 'INPUT' || (active.tagName === 'TEXTAREA' && !event.shiftKey))) {
+                // Find the current step
+                const currentStepElement = document.querySelector('.form-step.active');
+                if (currentStepElement) {
+                    // Prevent default Enter behavior (like submitting form)
+                    event.preventDefault();
+                    // Find the step number
+                    const stepId = currentStepElement.id;
+                    const match = stepId && stepId.match(/step-(\d+)/);
+                    if (match) {
+                        const stepNum = parseInt(match[1], 10);
+                        // Only move to next step if not the last step
+                        if (stepNum < totalSteps) {
+                            if (validateStep(stepNum)) {
+                                window.nextStep(stepNum + 1);
+                            }
+                        } else if (stepNum === totalSteps) {
+                            // On last step, allow form submission
+                            // Do nothing, let form submit
+                        }
+                    }
+                }
+            }
+        }
+    });
 }); 

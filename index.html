@@ -179,6 +179,13 @@
             border-radius: 0 0 8px 0;
             outline: 2px solid #fff;
         }
+        .plan-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -271,7 +278,11 @@
                                 <label class="block text-sm font-medium mb-2">Gender</label>
                                 <div id="genderContainer" class="grid grid-cols-2 gap-3"></div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                                <div>
+                                    <label for="age" class="block text-sm font-medium mb-2">Age (years)</label>
+                                    <input type="number" name="age" id="age" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" required aria-label="Age in years" min="10" max="100">
+                                </div>
                                 <div>
                                     <label for="height" class="block text-sm font-medium mb-2">Height (cm)</label>
                                     <input type="number" name="height" id="height" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" required aria-label="Height in centimeters">
@@ -310,8 +321,8 @@
                                 </select>
                             </div>
                             <div class="mb-6">
-                                <label for="limitations" class="block text-lg font-medium mb-3">Any injuries or limitations? (optional)</label>
-                                <textarea id="limitations" name="limitations" rows="4" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 'Bad lower back, avoid heavy deadlifts'" aria-label="Injuries or limitations"></textarea>
+                                <label for="limitations" class="block mb-2 text-sm font-medium text-gray-200">Any specific requests, injuries, etc.? (optional)</label>
+                                <textarea id="limitations" name="limitations" rows="4" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 'Sundays free, muscle building plus weight loss, bad lower back, avoid heavy deadlifts'" aria-label="Injuries or limitations"></textarea>
                             </div>
                             <div class="flex justify-between">
                                 <button type="button" onclick="prevStep(3)" class="px-6 py-3 font-semibold text-white rounded-lg btn-secondary" aria-label="Previous Step">Back</button>
@@ -338,7 +349,7 @@
                          <p class="text-gray-400 mt-2 max-w-2xl mx-auto">Here is your AI-generated workout plan. You can edit your inputs or download it.</p>
                     </div>
                    
-                    <div id="plan-details" class="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    <div id="plan-details" class="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 px-4 sm:px-0 justify-center">
                         <!-- Plan cards will be injected here -->
                     </div>
 
